@@ -555,7 +555,7 @@ bool CTransaction::CheckTransaction() const
         if (!MoneyRange(nValueOut))
             return DoS(100, error("CTransaction::CheckTransaction() : txout total out of range"));
 
-        if (vout[i].scriptPubKey == GetFoundationScript() && vout[i].nValue >= FOUNDATION_AMOUNT) {
+        if (vout[i].scriptPubKey == GetFoundationScript() && vout[i].nValue >= FOUNDATION_AMOUNT * COIN) {
           payFoundation = true;
         }
     }
