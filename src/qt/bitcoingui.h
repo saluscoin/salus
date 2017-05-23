@@ -115,6 +115,14 @@ private:
     /** Create system tray (notification) icon */
     void createTrayIcon();
 
+    /* Themes support */
+    QString selectedTheme;
+    QStringList themesList;
+    // Path to directory where all themes are (usable for some common images?...)
+    QString themesDir;
+    QAction *customActions[100];
+    /* Themes support */
+
 public slots:
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
@@ -196,6 +204,12 @@ private slots:
 
     /** called by a timer to check if fRequestShutdown has been set **/
     void detectShutdown();
+
+    /** Load external QSS stylesheet */
+    void changeTheme(QString theme);
+    void loadTheme(QString theme);
+    void listThemes(QStringList& themes);
+    void keyPressEvent(QKeyEvent * e);
 };
 
 #endif // BITCOINGUI_H
