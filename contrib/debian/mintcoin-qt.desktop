@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=X11Coin
+Comment=X11Coin P2P Cryptocurrency
+Comment[fr]=X11Coin, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=X11Coin, eşten eşe kriptografik sanal para birimi
+Comment[es]=X11Coin, una criptomoneda P2P
+Exec=/usr/bin/truckcoin-qt
+Terminal=false
+Type=Application
+Icon=/usr/share/pixmaps/bitcoin80.xpm
+MimeType=x-scheme-handler/truckcoin;
+Categories=Office;

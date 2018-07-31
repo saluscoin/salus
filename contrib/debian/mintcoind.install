@@ -1,0 +1,2 @@
+debian/bin/truckcoind usr/bin
+src/truckcoind usr/lib/truckcoin

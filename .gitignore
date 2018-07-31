@@ -1,0 +1,13 @@
+*.txt
+*.qmake.stash
+/Makefile
+/Makefile.Debug
+/Makefile.Release
+/libtool
+/configure
+/salus-qt
+/object_script.salus-qt.Debug
+/object_script.salus-qt.Release
+/salus-qt_plugin_import.cpp
+/config.log
+/config.status

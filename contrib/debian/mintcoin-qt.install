@@ -1,0 +1,5 @@
+truckcoin-qt usr/bin
+share/pixmaps/bitcoin32.xpm usr/share/pixmaps
+share/pixmaps/bitcoin80.xpm usr/share/pixmaps
+debian/truckcoin-qt.desktop usr/share/applications
+debian/truckcoin-qt.protocol usr/share/kde4/services/
