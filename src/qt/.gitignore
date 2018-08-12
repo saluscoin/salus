@@ -1,0 +1,17 @@
+/overviewpage.moc
+/rpcconsole.moc
+/moc_addressbookpage.cpp
+/moc_addresstablemodel.cpp
+/moc_askpassphrasedialog.cpp
+/moc_bitcoinaddressvalidator.cpp
+/moc_bitcoinamountfield.cpp
+/moc_bitcoingui.cpp
+/moc_bitcoinunits.cpp
+/moc_clientmodel.cpp
+/moc_coincontroldialog.cpp
+/moc_coincontroltreewidget.cpp
+/moc_csvmodelwriter.cpp
+/moc_editaddressdialog.cpp
+/moc_guiutil.cpp
+/moc_macdockiconhandler.cpp
+/moc_notificator.cpp
