@@ -30,7 +30,6 @@ BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPP
 
 LIBBITCOIN_SERVER=libbitcoin_server.a
 LIBBITCOIN_COMMON=libbitcoin_common.a
-LIBBITCOIN_CLI=libbitcoin_cli.a
 LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 
@@ -50,7 +49,6 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_SERVER) \
-  $(LIBBITCOIN_CLI) \
   $(LIBBITCOIN_WALLET)
 
 lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS)
