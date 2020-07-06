@@ -80,9 +80,9 @@ public:
 
         vSeeds.push_back(CDNSSeedData("198.50.243.69", "198.50.243.69"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = boost::assign::list_of(63).convert_to_container<std::vector<unsigned char> >();
-        base58Prefixes[SCRIPT_ADDRESS] = boost::assign::list_of(23).convert_to_container<std::vector<unsigned char> >();
-        base58Prefixes[SECRET_KEY] =     boost::assign::list_of(191).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,63);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,23);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,191);
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
 
