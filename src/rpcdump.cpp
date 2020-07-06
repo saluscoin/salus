@@ -130,6 +130,7 @@ Value importprivkey(const Array& params, bool fHelp)
     CKey key = vchSecret.GetKey();
     CPubKey pubkey = key.GetPubKey();
     CKeyID vchAddress = pubkey.GetID();
+    std::string strAddress = CBitcoinAddress(vchAddress).ToString();
     {
         LOCK2(cs_main, pwalletMain->cs_wallet);
 
@@ -154,7 +155,9 @@ Value importprivkey(const Array& params, bool fHelp)
         }
     }
 
-    return Value::null;
+    Object result;
+    result.push_back(Pair("address", strAddress));
+    return result;
 }
 
 Value importwallet(const Array& params, bool fHelp)
