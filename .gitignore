@@ -11,3 +11,14 @@
 /salus-qt_plugin_import.cpp
 /config.log
 /config.status
+/src/qt/locale/*.qm
+moc_*
+*.o
+*.a
+ui_*
+.idea/*
+Makefile.in
+qrc_bitcoin.cpp
+salus_qt
+build/*
+*.moc
