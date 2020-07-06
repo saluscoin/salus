@@ -12,6 +12,7 @@
 #include <string>
 
 #include <stdint.h>
+#include <mnemonic/walletinitflags.h>
 
 class CBasicKeyStore;
 class CWallet;
@@ -93,6 +94,9 @@ public:
      * @note called with lock cs_mapAlerts held.
      */
     boost::signals2::signal<void (const uint256 &hash, ChangeType status)> NotifyAlertChanged;
+
+    /** A new wallet needs to be created. */
+    boost::signals2::signal<bool (std::string& message, unsigned int& flag)> InitWallet;
 };
 
 extern CClientUIInterface uiInterface;
@@ -105,6 +109,37 @@ inline std::string _(const char* psz)
 {
     boost::optional<std::string> rv = uiInterface.Translate(psz);
     return rv ? (*rv) : psz;
+}
+
+inline bool InitNewWalletPrompt(unsigned int& initOption)
+{
+    std::string message;
+    initOption = MnemonicWalletInitFlags::PROMPT_MNEMONIC;
+    return *uiInterface.InitWallet(message, initOption);
+}
+
+inline bool DisplayWalletMnemonic(std::string& message)
+{
+    unsigned int initOption = MnemonicWalletInitFlags::NEW_MNEMONIC;
+    return *uiInterface.InitWallet(message, initOption);
+}
+
+inline bool GetWalletMnemonic(std::string& message)
+{
+    unsigned int initOption = MnemonicWalletInitFlags::IMPORT_MNEMONIC;
+    return *uiInterface.InitWallet(message, initOption);
+}
+
+inline bool GetWalletMnemonicLanguage(std::string& message, unsigned int& initOption)
+{
+    initOption = MnemonicWalletInitFlags::SELECT_LANGUAGE;
+    return *uiInterface.InitWallet(message, initOption);
+}
+
+inline bool RetryWalletMnemonic(std::string& message)
+{
+    unsigned int initOption = MnemonicWalletInitFlags::INVALID_MNEMONIC;
+    return *uiInterface.InitWallet(message, initOption);
 }
 
 #endif

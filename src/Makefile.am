@@ -31,6 +31,7 @@ BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPP
 LIBBITCOIN_SERVER=libbitcoin_server.a
 LIBBITCOIN_COMMON=libbitcoin_common.a
 LIBBITCOIN_UTIL=libbitcoin_util.a
+LIBBITCOIN_CRYPTO_BASE=crypto/libbitcoin_crypto_base.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 
 if BUILD_BITCOIN_LIBS
@@ -40,9 +41,12 @@ if ENABLE_WALLET
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
 endif
 
+LIBBITCOIN_CRYPTO= $(LIBBITCOIN_CRYPTO_BASE)
+
 # Make is not made aware of per-object dependencies to avoid limiting building parallelization
 # But to build the less dependent modules first, we manually select their order here:
 EXTRA_LIBRARIES += \
+  $(LIBBITCOIN_CRYPTO) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_SERVER) \
@@ -80,6 +84,12 @@ BITCOIN_CORE_H = \
   keystore.h \
   main.h \
   miner.h \
+  mnemonic/arrayslice.h \
+  mnemonic/dictionary.h \
+  mnemonic/generateseed.h \
+  mnemonic/mnemonic.h \
+  mnemonic/mnemonicwalletinit.h \
+  mnemonic/walletinitflags.h \
   mruset.h \
   netbase.h \
   net.h \
@@ -116,6 +126,23 @@ obj/build.h: FORCE
 	  "$(abs_top_srcdir)"
 libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
+# crypto primitives library
+crypto_libbitcoin_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS)
+crypto_libbitcoin_crypto_base_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+crypto_libbitcoin_crypto_base_a_SOURCES = \
+  crypto/common.h \
+  crypto/hmac_sha256.c \
+  crypto/hmac_sha256.h \
+  crypto/hmac_sha512.c \
+  crypto/pkcs5_pbkdf2.c \
+  crypto/pkcs5_pbkdf2.h \
+  crypto/sha256.c \
+  crypto/sha256.h \
+  crypto/sha512.c \
+  crypto/sha512.h \
+  crypto/zeroize.c \
+  crypto/zeroize.h
+
 # server: shared between salusd and salus-qt
 libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
@@ -140,7 +167,6 @@ libbitcoin_server_a_SOURCES = \
   txmempool.cpp \
   $(BITCOIN_CORE_H)
 
-
 # wallet: shared between salusd and salus-qt, but only linked
 # when wallet enabled
 libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
@@ -151,6 +177,10 @@ libbitcoin_wallet_a_SOURCES = \
   rpcdump.cpp \
   rpcwallet.cpp \
   kernel.cpp \
+  mnemonic/dictionary.cpp \
+  mnemonic/generateseed.cpp \
+  mnemonic/mnemonic.cpp \
+  mnemonic/mnemonicwalletinit.cpp \
   wallet.cpp \
   walletdb.cpp \
   $(BITCOIN_CORE_H)
@@ -169,6 +199,7 @@ libbitcoin_common_a_SOURCES = \
   protocol.cpp \
   script.cpp \
   scrypt.cpp \
+  ui_interface.cpp \
   $(BITCOIN_CORE_H)
 
 # util: shared between all executables.
@@ -204,15 +235,17 @@ salusd_LDADD = \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_WALLET) \
+  $(LIBBITCOIN_CONSENSUS) \
+  $(LIBBITCOIN_CRYPTO) \
   $(LIBLEVELDB) \
   $(LIBMEMENV)
 
-salusd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
+salusd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(SSL_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 
 # bitcoinconsensus library #
 if BUILD_BITCOIN_LIBS
 include_HEADERS = script/bitcoinconsensus.h
-libbitcoinconsensus_la_SOURCES = \
+libbitcoinconsensus_la_SOURCES = $(crypto_libbitcoin_crypto_base_a_SOURCES) \
   allocators.cpp \
   hash.cpp \
   pubkey.cpp \

@@ -12,6 +12,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #ifdef ENABLE_WALLET
+#include <mnemonic/mnemonicwalletinit.h>
 #include "wallet.h"
 #include "walletdb.h"
 #endif
@@ -694,30 +695,34 @@ bool AppInit2(boost::thread_group& threadGroup)
         uiInterface.InitMessage(_("Loading wallet..."));
 
         nStart = GetTimeMillis();
+//        bool fFirstRun = true;
+//        pwalletMain = new CWallet(strWalletFileName);
+//        DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun);
+//        if (nLoadWalletRet != DB_LOAD_OK)
+//        {
+//            if (nLoadWalletRet == DB_CORRUPT)
+//                strErrors << _("Error loading wallet.dat: Wallet corrupted") << "\n";
+//            else if (nLoadWalletRet == DB_NONCRITICAL_ERROR)
+//            {
+//                string msg(_("Warning: error reading wallet.dat! All keys read correctly, but transaction data"
+//                             " or address book entries might be missing or incorrect."));
+//                InitWarning(msg);
+//            }
+//            else if (nLoadWalletRet == DB_TOO_NEW)
+//                strErrors << _("Error loading wallet.dat: Wallet requires newer version of SaluS") << "\n";
+//            else if (nLoadWalletRet == DB_NEED_REWRITE)
+//            {
+//                strErrors << _("Wallet needed to be rewritten: restart SaluS to complete") << "\n";
+//                LogPrintf("%s", strErrors.str());
+//                return InitError(strErrors.str());
+//            }
+//            else
+//                strErrors << _("Error loading wallet.dat") << "\n";
+//        }
+
         bool fFirstRun = true;
-        pwalletMain = new CWallet(strWalletFileName);
-        DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun);
-        if (nLoadWalletRet != DB_LOAD_OK)
-        {
-            if (nLoadWalletRet == DB_CORRUPT)
-                strErrors << _("Error loading wallet.dat: Wallet corrupted") << "\n";
-            else if (nLoadWalletRet == DB_NONCRITICAL_ERROR)
-            {
-                string msg(_("Warning: error reading wallet.dat! All keys read correctly, but transaction data"
-                             " or address book entries might be missing or incorrect."));
-                InitWarning(msg);
-            }
-            else if (nLoadWalletRet == DB_TOO_NEW)
-                strErrors << _("Error loading wallet.dat: Wallet requires newer version of SaluS") << "\n";
-            else if (nLoadWalletRet == DB_NEED_REWRITE)
-            {
-                strErrors << _("Wallet needed to be rewritten: restart SaluS to complete") << "\n";
-                LogPrintf("%s", strErrors.str());
-                return InitError(strErrors.str());
-            }
-            else
-                strErrors << _("Error loading wallet.dat") << "\n";
-        }
+        MnemonicWalletInit walletInit;
+        bool fSuccess = walletInit.Open();
 
         if (GetBoolArg("-upgradewallet", fFirstRun))
         {
