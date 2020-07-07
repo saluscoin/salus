@@ -604,6 +604,13 @@ bool CKey::Load(CPrivKey &privkey, CPubKey &vchPubKey, bool fSkipCheck=false) {
     return true;
 }
 
+void CKey::Clear()
+{
+    memset(vch, 0, size());
+    fCompressed = true;
+    fValid = false;
+}
+
 bool CPubKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) const {
     if (!IsValid())
         return false;
@@ -730,6 +737,14 @@ void CExtKey::SetMaster(const unsigned char *seed, unsigned int nSeedLen) {
     nDepth = 0;
     nChild = 0;
     memset(vchFingerprint, 0, sizeof(vchFingerprint));
+}
+
+void CExtKey::SetSeedFromKeys(const CKey& key1, const CKey& key2)
+{
+    std::vector<unsigned char> vch(64);
+    memcpy(vch.data(), key1.begin(), key1.size());
+    memcpy(vch.data()+32, key2.begin(), key2.size());
+    SetMaster(vch.data(), vch.size());
 }
 
 CExtPubKey CExtKey::Neuter() const {

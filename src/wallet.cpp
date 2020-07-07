@@ -49,14 +49,104 @@ struct CompareValueOnly
     }
 };
 
+#define BIP44_PURPOSE 0x8000002C
+const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
+
+CExtKey DeriveKeyFromPath(const CExtKey& keyAccount, const BIP32Path& vPath)
+{
+    CExtKey keyDerive = keyAccount;
+    for (auto p : vPath) {
+        uint32_t nAccount = p.first;
+        bool fHardened = p.second;
+        if (fHardened)
+            nAccount |= BIP32_HARDENED_KEY_LIMIT;
+        keyDerive.Derive(keyDerive, nAccount);
+    }
+    return keyDerive;
+}
+
+// Pass in {[0, true], [0, false], [0, false]} to match default bip44 matching
+// the same derivation used here https://iancoleman.io/bip39/
+CExtKey CWallet::DeriveBIP32Path(const BIP32Path& vPath)
+{
+    CKey seed1;                     //seed (512bit) stored between two keys
+    CKey seed2;
+    CExtKey keyMaster;             //hd master key
+    CExtKey keyPurpose;            //key at m/44'
+    CExtKey keyCoin;               //key at m/44'/coinid'
+
+    // try to get the seed
+    if (!GetKey(hdChain.seed_id, seed1))
+        throw std::runtime_error(std::string(__func__) + ": seed not found");
+
+    // veil default is 512 bit seed
+    if (hdChain.Is512BitSeed()) {
+        if (!GetKey(hdChain.seed_id_r, seed2))
+            throw std::runtime_error(std::string(__func__) + ": seed2 not found");
+        keyMaster.SetSeedFromKeys(seed1, seed2);
+    } else {
+        keyMaster.SetMaster(seed1.begin(), seed1.size());
+    }
+    seed1.Clear();
+    seed2.Clear();
+
+    // Automatically derive m/44'/slip44_coinid then build the rest of the request from there
+    keyMaster.Derive(keyPurpose, BIP44_PURPOSE);
+    keyPurpose.Derive(keyCoin, Params().BIP44ID());
+
+    return DeriveKeyFromPath(keyCoin, vPath);
+}
+
+void CWallet::DeriveNewChildKey(CKeyMetadata& metadata, CKey& secret, bool internal)
+{
+    // Derive keys according to BIP44/32. Derive each stage hardened.
+    // Internal: m/44'/slip44id'/0'/0'/d'
+    // External: m/44'/slip44id'/0'/1'/d'
+    BIP32Path vPath = {{0, true}, {static_cast<uint32_t>(internal), true}};
+    CExtKey accountKey = DeriveBIP32Path(vPath);
+
+    // derive child key at next index, skip keys already known to the wallet
+    CExtKey childKey;
+    do {
+        if (internal) {
+            accountKey.Derive(childKey, hdChain.nInternalChainCounter | BIP32_HARDENED_KEY_LIMIT);
+            metadata.hdKeypath = strprintf("m/44'/%d'/0'/1'/%d'", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), hdChain.nInternalChainCounter);
+            hdChain.nInternalChainCounter++;
+        } else {
+            accountKey.Derive(childKey, hdChain.nExternalChainCounter | BIP32_HARDENED_KEY_LIMIT);
+            metadata.hdKeypath = strprintf("m/44'/%d'/0'/0'/%d'", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), hdChain.nExternalChainCounter);
+            hdChain.nExternalChainCounter++;
+        }
+    } while (HaveKey(childKey.key.GetPubKey().GetID()));
+
+    secret = childKey.key;
+    //LogPrintf("Final Key %s=%s\n", metadata.hdKeypath, HexStr(secret.GetPubKey()));
+    metadata.hd_seed_id = hdChain.seed_id;
+    metadata.hd_seed_id_r = hdChain.seed_id_r;
+    // update the chain model in the database
+    if (!CWalletDB(strWalletFile).WriteHDChain(hdChain))
+        throw std::runtime_error(std::string(__func__) + ": Writing HD chain model failed");
+}
+
+bool CWallet::IsHDEnabled()
+{
+    return !hdChain.seed_id.IsNull();
+}
+
 CPubKey CWallet::GenerateNewKey()
 {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
     bool fCompressed = CanSupportFeature(FEATURE_COMPRPUBKEY); // default to compressed public keys if we want 0.6.0 wallets
 
-    RandAddSeedPerfmon();
+    int64_t nCreationTime = GetTime();
+    CKeyMetadata metadata(nCreationTime);
     CKey secret;
-    secret.MakeNewKey(fCompressed);
+    if (CWallet::IsHDEnabled()) {
+        DeriveNewChildKey(metadata, secret, /*internal*/false);
+    } else {
+        RandAddSeedPerfmon();
+        secret.MakeNewKey(fCompressed);
+    }
 
     // Compressed public keys were introduced in version 0.6.0
     if (fCompressed)
@@ -65,8 +155,7 @@ CPubKey CWallet::GenerateNewKey()
     CPubKey pubkey = secret.GetPubKey();
 
     // Create new metadata
-    int64_t nCreationTime = GetTime();
-    mapKeyMetadata[pubkey.GetID()] = CKeyMetadata(nCreationTime);
+    mapKeyMetadata[pubkey.GetID()] = metadata;
     if (!nTimeFirstKey || nCreationTime < nTimeFirstKey)
         nTimeFirstKey = nCreationTime;
 

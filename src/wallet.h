@@ -34,6 +34,8 @@ class CReserveKey;
 class COutput;
 class CWalletDB;
 
+typedef std::vector<std::pair<uint32_t, bool> > BIP32Path;
+
 /** (client) version numbers for particular wallet features */
 enum WalletFeature
 {
@@ -150,6 +152,14 @@ public:
     // keystore implementation
     // Generate a new key
     CPubKey GenerateNewKey();
+
+    /* the HD chain data model (external chain counters) */
+    CHDChain hdChain;
+    bool IsHDEnabled();
+
+    void DeriveNewChildKey(CKeyMetadata& metadata, CKey& secret, bool internal = false);
+    CExtKey DeriveBIP32Path(const BIP32Path& vPath);
+
     // Adds a key to the store, and saves it to disk.
     bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey);
     // Adds a key to the store, without saving it to disk (used by LoadWallet)

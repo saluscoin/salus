@@ -273,6 +273,8 @@ public:
 
     // Ensure that signature is DER-encoded
     static bool ReserealizeSignature(std::vector<unsigned char>& vchSig);
+
+    void Clear();
 };
 
 struct CExtPubKey {
@@ -309,6 +311,7 @@ struct CExtKey {
     bool Derive(CExtKey &out, unsigned int nChild) const;
     CExtPubKey Neuter() const;
     void SetMaster(const unsigned char *seed, unsigned int nSeedLen);
+    void SetSeedFromKeys(const CKey& key1, const CKey& key2);
 };
 
 /** Check that required EC support is available at runtime */
