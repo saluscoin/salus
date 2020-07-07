@@ -32,6 +32,8 @@
 #include "wallet.h"
 #include "init.h"
 #include "ui_interface.h"
+#include "mnemonicdialog.h"
+#include "mnemonicdisplay.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -706,6 +708,82 @@ void BitcoinGUI::message(const QString &title, const QString &message, bool moda
     }
     else
         notificator->notify((Notificator::Class)nNotifyIcon, strTitle, message);
+}
+
+void BitcoinGUI::initWalletMenu(std::string& mnemonic, unsigned int& flag, bool& ret)
+{
+    switch(flag) {
+        //Note: Veil new GUI only responds to SELECT_LANGUAGE and does everything in that one signal
+        case MnemonicWalletInitFlags::SELECT_LANGUAGE:
+        {
+            std::cout << "mnemonic: " << mnemonic << std::endl;
+//            TutorialWidget *tutorial = new TutorialWidget();
+//            tutorial->exec();
+//
+//            while (tutorial->isVisible()) {
+//                MilliSleep(500);
+//            }
+//
+//            ret = !tutorial->ShutdownRequested();
+//            mnemonic = tutorial->GetMnemonic();
+//            flag = MnemonicWalletInitFlags::IMPORT_MNEMONIC;
+//            delete tutorial;
+
+            break;
+        }
+        case MnemonicWalletInitFlags::PROMPT_MNEMONIC:
+        {
+            MnemonicDialog *mDiag = new MnemonicDialog();
+            mDiag->exec();
+
+            while (mDiag->isVisible()) {
+                MilliSleep(500);
+            }
+
+            ret = !mDiag->ShutdownRequested();
+            flag = mDiag->GetSelection();
+            delete mDiag;
+            break;
+        }
+        case MnemonicWalletInitFlags::NEW_MNEMONIC:
+        {
+            MnemonicDisplay *mDisp = new MnemonicDisplay(QString::fromStdString(mnemonic));
+            mDisp->exec();
+
+            while (mDisp->isVisible())
+                MilliSleep(500);
+
+            ret = !mDisp->ShutdownRequested();
+            delete mDisp;
+            break;
+        }
+        case MnemonicWalletInitFlags::IMPORT_MNEMONIC:
+        {
+            MnemonicDisplay *mDisp = new MnemonicDisplay();
+            mDisp->exec();
+
+            while (mDisp->isVisible())
+                MilliSleep(500);
+
+            ret = !mDisp->ShutdownRequested();
+            mnemonic = mDisp->GetImportSeed().toStdString();
+            delete mDisp;
+            break;
+        }
+        case MnemonicWalletInitFlags::INVALID_MNEMONIC:
+        {
+            bool fRetry = true;
+            MnemonicDisplay *mDisp = new MnemonicDisplay(fRetry);
+            mDisp->exec();
+
+            while (mDisp->isVisible())
+                MilliSleep(500);
+
+            ret = !mDisp->ShutdownRequested();
+            mnemonic = mDisp->GetImportSeed().toStdString();
+            delete mDisp;
+        }
+    }
 }
 
 void BitcoinGUI::changeEvent(QEvent *e)

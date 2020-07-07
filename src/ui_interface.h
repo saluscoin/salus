@@ -83,6 +83,9 @@ public:
     /** Progress message during initialization. */
     boost::signals2::signal<void (const std::string &message)> InitMessage;
 
+    /** A new wallet needs to be created. */
+    boost::signals2::signal<bool (std::string& message, unsigned int& flag)> InitWallet;
+
     /** Translate a message to the native language of the user. */
     boost::signals2::signal<std::string (const char* psz)> Translate;
 
@@ -95,8 +98,7 @@ public:
      */
     boost::signals2::signal<void (const uint256 &hash, ChangeType status)> NotifyAlertChanged;
 
-    /** A new wallet needs to be created. */
-    boost::signals2::signal<bool (std::string& message, unsigned int& flag)> InitWallet;
+
 };
 
 extern CClientUIInterface uiInterface;

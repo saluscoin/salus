@@ -26,7 +26,6 @@ bool MnemonicWalletInit::Open() const
 
     std::string strDataDir = GetDataDir().string();
     std::string walletFile = GetArg("-wallet", "wallet.dat");
-
     // strWalletFileName must be a plain filename without a directory
 //    if (strWalletFileName != boost::filesystem::basename(strWalletFileName) + boost::filesystem::extension(strWalletFileName))
 //        return InitError(strprintf(_("Wallet %s resides outside data directory %s."), strWalletFileName, strDataDir));
@@ -40,27 +39,23 @@ bool MnemonicWalletInit::Open() const
         /** check startup args because daemon is not interactive **/
         if (GetBoolArg("-generateseed", false))
             initOption = MnemonicWalletInitFlags::NEW_MNEMONIC;
-
         std::string strSeedPhraseArg = GetArg("-importseed", "");
         if (!strSeedPhraseArg.empty())
             initOption = MnemonicWalletInitFlags::IMPORT_MNEMONIC;
 
-        /**If no startup args, then launch prompt **/
-        std::string strMessage = "english";
+        /**If no startup args, then launch prompt asking to import a seed or generate new **/
         if (initOption == MnemonicWalletInitFlags::INVALID_MNEMONIC) {
-            // Language only routes to GUI. It returns with the filled out mnemonic in strMessage
-            if (!GetWalletMnemonicLanguage(strMessage, initOption))
-                return false;
-            // The mnemonic phrase now needs to be converted to the final wallet seed (note: different than the phrase seed)
-            strSeedPhraseArg = strMessage;
-            //LogPrintf("%s: mnemonic phrase: %s\n", __func__, strSeedPhraseArg);
-            initOption = MnemonicWalletInitFlags::IMPORT_MNEMONIC;
+            // Prompt the user to either enter a seed phrase, or generate a new one
+            unsigned int ret = 0;
+            if (!InitNewWalletPrompt(ret))
+                return error("%s: failed to get wallet mnemonic languag");
+            initOption = static_cast<MnemonicWalletInitFlags>(ret);
         }
 
-        /** Create a new mnemonic - this should only be triggered via daemon **/
+        /** Create a new mnemonic **/
         if (initOption == MnemonicWalletInitFlags::NEW_MNEMONIC) {
             std::string mnemonic;
-            veil::GenerateNewMnemonicSeed(mnemonic, strMessage);
+            veil::GenerateNewMnemonicSeed(mnemonic, "english");
             if (!DisplayWalletMnemonic(mnemonic))
                 return false;
             strSeedPhraseArg = mnemonic;
@@ -69,6 +64,13 @@ bool MnemonicWalletInit::Open() const
 
         /** Convert the mnemonic phrase to the final seed used for the wallet **/
         if (initOption == MnemonicWalletInitFlags::IMPORT_MNEMONIC) {
+            // All options should end here.
+            // 1: User generates new seed. strSeedPhrase arg should be populated.
+            // 2: User selects in GUI to import a seed. strSeedPhrase should not be populated.
+            // 3: User uses daemon with -importseed option. strSeedPhrase should be populated
+            if (strSeedPhraseArg.empty() && !GetWalletMnemonic(strSeedPhraseArg))
+                return false;
+
             // Convert the BIP39 mnemonic phrase into the final 512bit wallet seed
             auto hashRet = decode_mnemonic(strSeedPhraseArg);
             memcpy(hashMasterKey.begin(), hashRet.begin(), hashRet.size());
@@ -76,6 +78,8 @@ bool MnemonicWalletInit::Open() const
         }
     }
 
+
+    //todo: pass the seedphrase into the wallet
     bool fFirstRun = true;
     pwalletMain = new CWallet(walletFile);
     DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun);
@@ -90,6 +94,7 @@ bool MnemonicWalletInit::Open() const
             string msg(_("Warning: error reading wallet.dat! All keys read correctly, but transaction data"
                          " or address book entries might be missing or incorrect."));
             //InitWarning(msg);
+            LogPrintf("%s\n", msg);
         }
         else if (nLoadWalletRet == DB_TOO_NEW)
             strErrors += _("Error loading wallet.dat: Wallet requires newer version of SaluS") + "\n";
@@ -97,20 +102,11 @@ bool MnemonicWalletInit::Open() const
         {
             strErrors += _("Wallet needed to be rewritten: restart SaluS to complete") + "\n";
             LogPrintf("%s", strErrors);
-            //return InitError(strErrors);
             return false;
         }
         else
             strErrors += _("Error loading wallet.dat") + "\n";
     }
-
-//    std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(walletFile, walletPath, 0, fNewSeed ? &hashMasterKey : nullptr);
-//    if (!pwallet) {
-//        return false;
-//    }
-
-//
-//    AddWallet(pwallet);
 
     return true;
 }

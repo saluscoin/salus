@@ -44,6 +44,8 @@ QT_FORMS_UI = \
   qt/forms/askpassphrasedialog.ui \
   qt/forms/coincontroldialog.ui \
   qt/forms/editaddressdialog.ui \
+  qt/forms/mnemonicdialog.ui \
+  qt/forms/mnemonicdisplay.ui \
   qt/forms/optionsdialog.ui \
   qt/forms/overviewpage.ui \
   qt/forms/qrcodedialog.ui \
@@ -69,6 +71,8 @@ QT_MOC_CPP = \
   qt/moc_editaddressdialog.cpp \
   qt/moc_guiutil.cpp \
   qt/moc_macdockiconhandler.cpp \
+  qt/moc_mnemonicdialog.cpp \
+  qt/moc_mnemonicdisplay.cpp \
   qt/moc_monitoreddatamapper.cpp \
   qt/moc_notificator.cpp \
   qt/moc_optionsdialog.cpp \
@@ -118,6 +122,8 @@ BITCOIN_QT_H = \
   qt/guiconstants.h \
   qt/guiutil.h \
   qt/macdockiconhandler.h \
+  qt/mnemonicdialog.h \
+  qt/mnemonicdisplay.h \
   qt/monitoreddatamapper.h \
   qt/networkstyle.h \
   qt/notificator.h \
@@ -192,6 +198,8 @@ BITCOIN_QT_CPP = \
   qt/clientmodel.cpp \
   qt/csvmodelwriter.cpp \
   qt/guiutil.cpp \
+  qt/mnemonicdialog.cpp \
+  qt/mnemonicdisplay.cpp \
   qt/monitoreddatamapper.cpp \
   qt/notificator.cpp \
   qt/optionsdialog.cpp \

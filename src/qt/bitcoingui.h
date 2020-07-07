@@ -142,6 +142,8 @@ public slots:
                             @see CClientUIInterface::MessageBoxFlags
     */
     void message(const QString &title, const QString &message, bool modal, unsigned int style);
+    void initWalletMenu(std::string& mnemonic, unsigned int& flag, bool& ret);
+
     /** Asks the user whether to pay the transaction fee or to cancel the transaction.
        It is currently not possible to pass a return value to another thread through
        BlockingQueuedConnection, so an indirected pointer is used.

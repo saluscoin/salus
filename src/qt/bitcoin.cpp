@@ -88,6 +88,17 @@ static void InitMessage(const std::string &message)
     LogPrintf("init message: %s\n", message);
 }
 
+static bool InitWallet(std::string& message, unsigned int& flag)
+{
+    bool ret = false;
+    QMetaObject::invokeMethod(guiref, "initWalletMenu",
+                              GUIUtil::blockingGUIThreadConnection(),
+                              Q_ARG(std::string&, message),
+                              Q_ARG(unsigned int&, flag),
+                              Q_ARG(bool&, ret));
+    return ret;
+}
+
 /*
    Translate string to current locale using Qt.
  */
@@ -209,6 +220,7 @@ int main(int argc, char *argv[])
     uiInterface.ThreadSafeMessageBox.connect(ThreadSafeMessageBox);
     uiInterface.ThreadSafeAskFee.connect(ThreadSafeAskFee);
     uiInterface.InitMessage.connect(InitMessage);
+    uiInterface.InitWallet.connect(InitWallet);
     uiInterface.Translate.connect(Translate);
 
     // Show help message immediately after parsing command-line options (for "-lang") and setting locale,

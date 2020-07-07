@@ -719,11 +719,11 @@ bool AppInit2(boost::thread_group& threadGroup)
 //            else
 //                strErrors << _("Error loading wallet.dat") << "\n";
 //        }
-
+LogPrintf("%s:%d\n", __func__, __LINE__);
         bool fFirstRun = true;
         MnemonicWalletInit walletInit;
         bool fSuccess = walletInit.Open();
-
+LogPrintf("%s:%d\n", __func__, __LINE__);
         if (GetBoolArg("-upgradewallet", fFirstRun))
         {
             int nMaxVersion = GetArg("-upgradewallet", 0);
