@@ -199,7 +199,6 @@ libbitcoin_common_a_SOURCES = \
   protocol.cpp \
   script.cpp \
   scrypt.cpp \
-  ui_interface.cpp \
   $(BITCOIN_CORE_H)
 
 # util: shared between all executables.
