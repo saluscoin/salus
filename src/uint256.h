@@ -783,4 +783,9 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 // Temporary for migration to opaque uint160/256
 inline uint256 uint256S(const std::string &x) { return uint256(x); }
 
+inline uint256 MaxUint256()
+{
+    return uint256S("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+}
+
 #endif // BITCOIN_UINT256_H

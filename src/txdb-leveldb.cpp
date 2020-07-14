@@ -12,7 +12,7 @@
 #include <leveldb/env.h>
 #include <leveldb/cache.h>
 #include <leveldb/filter_policy.h>
-#include <memenv/memenv.h>
+#include <memenv.h>
 
 #include "kernel.h"
 #include "txdb.h"
@@ -22,6 +22,8 @@
 
 using namespace std;
 using namespace boost;
+
+static const int DATABASE_VERSION = 70001;
 
 leveldb::DB *txdb; // global pointer for LevelDB object instance
 

@@ -8,35 +8,12 @@
 #include <string>
 
 //
-// client versioning
-//
-
-static const int CLIENT_VERSION =
-                           1000000 * CLIENT_VERSION_MAJOR
-                         +   10000 * CLIENT_VERSION_MINOR
-                         +     100 * CLIENT_VERSION_REVISION
-                         +       1 * CLIENT_VERSION_BUILD;
-
-extern const std::string CLIENT_NAME;
-extern const std::string CLIENT_BUILD;
-extern const std::string CLIENT_DATE;
-
-//
-// database format versioning
-//
-
-static const int DATABASE_VERSION = 70001;
-
-//
 // network protocol versioning
 //
-
 static const int PROTOCOL_VERSION = 70003;
 
-// intial proto version, to be increased after version/verack negotiation
-static const int INIT_PROTO_VERSION = 209;
-
-// disconnect from peers older than this proto version
+// earlier versions not supported as of Feb 2012, and are disconnected
+static const int MIN_PROTO_VERSION = 209;
 static const int MIN_PEER_PROTO_VERSION = 70003;
 
 // nTime field added to CAddress, starting with this version;
@@ -55,5 +32,10 @@ static const int MEMPOOL_GD_VERSION = 60002;
 
 // reject blocks with non-canonical signatures starting from this version
 static const int CANONICAL_BLOCK_SIG_VERSION = 70001;
+
+#define DISPLAY_VERSION_MAJOR       1
+#define DISPLAY_VERSION_MINOR       1
+#define DISPLAY_VERSION_REVISION    5
+#define DISPLAY_VERSION_BUILD       1
 
 #endif

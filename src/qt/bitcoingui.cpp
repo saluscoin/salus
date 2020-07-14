@@ -943,7 +943,12 @@ void BitcoinGUI::encryptWallet()
 
 void BitcoinGUI::backupWallet()
 {
-    QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+    QString saveDir;
+#if QT_VERSION < 0x050000
+    saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+#else
+    saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#endif
     QString filename = QFileDialog::getSaveFileName(this, tr("Backup Wallet"), saveDir, tr("Wallet Data (*.dat)"));
     if(!filename.isEmpty()) {
         if(!walletModel->backupWallet(filename)) {
