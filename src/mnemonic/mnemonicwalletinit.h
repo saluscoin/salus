@@ -9,6 +9,8 @@
 
 class MnemonicWalletInit
 {
+private:
+    uint512 m_seed;
 public:
     void AddWalletOptions() const { /*WalletInit::AddWalletOptions();*/ }
     bool ParameterInteraction() const {/* return WalletInit::ParameterInteraction(); */}
@@ -18,8 +20,9 @@ public:
     void Flush() const {/* WalletInit::Flush(); */}
     void Stop() const {/* WalletInit::Stop(); */}
     void Close() const {/* WalletInit::Close(); /*/}
+    bool Open(bool& fNewSeed);
 
-    bool Open() const;
+    const uint512& Seed() const;
 };
 
 #endif //VEIL_MNEMONICWALLETINIT_H

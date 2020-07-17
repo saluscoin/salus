@@ -156,6 +156,9 @@ public:
     /* the HD chain data model (external chain counters) */
     CHDChain hdChain;
     bool IsHDEnabled();
+    void SetHDChain(const CHDChain& chain, bool memonly);
+    void SetHDSeed_512(const uint512& hashSeed);
+    CPubKey DeriveNewSeed(const CKey& key);
 
     void DeriveNewChildKey(CKeyMetadata& metadata, CKey& secret, bool internal = false);
     CExtKey DeriveBIP32Path(const BIP32Path& vPath);

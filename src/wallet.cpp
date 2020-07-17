@@ -102,25 +102,28 @@ void CWallet::DeriveNewChildKey(CKeyMetadata& metadata, CKey& secret, bool inter
     // Derive keys according to BIP44/32. Derive each stage hardened.
     // Internal: m/44'/slip44id'/0'/0'/d'
     // External: m/44'/slip44id'/0'/1'/d'
-    BIP32Path vPath = {{0, true}, {static_cast<uint32_t>(internal), true}};
+    internal = false;
+    BIP32Path vPath = {{0, true}, {static_cast<uint32_t>(internal), false}};
     CExtKey accountKey = DeriveBIP32Path(vPath);
+
 
     // derive child key at next index, skip keys already known to the wallet
     CExtKey childKey;
     do {
         if (internal) {
             accountKey.Derive(childKey, hdChain.nInternalChainCounter | BIP32_HARDENED_KEY_LIMIT);
-            metadata.hdKeypath = strprintf("m/44'/%d'/0'/1'/%d'", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), hdChain.nInternalChainCounter);
+            metadata.hdKeypath = strprintf("m/44'/%d'/0'/1/%d", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), hdChain.nInternalChainCounter);
             hdChain.nInternalChainCounter++;
         } else {
-            accountKey.Derive(childKey, hdChain.nExternalChainCounter | BIP32_HARDENED_KEY_LIMIT);
-            metadata.hdKeypath = strprintf("m/44'/%d'/0'/0'/%d'", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), hdChain.nExternalChainCounter);
+            //accountKey.Derive(childKey, hdChain.nExternalChainCounter | BIP32_HARDENED_KEY_LIMIT);
+            accountKey.Derive(childKey, hdChain.nExternalChainCounter);
+            metadata.hdKeypath = strprintf("m/44'/%d'/0'/0/%d", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), hdChain.nExternalChainCounter);
             hdChain.nExternalChainCounter++;
         }
     } while (HaveKey(childKey.key.GetPubKey().GetID()));
 
     secret = childKey.key;
-    //LogPrintf("Final Key %s=%s\n", metadata.hdKeypath, HexStr(secret.GetPubKey()));
+    LogPrintf("Final Key %s=%s\n", metadata.hdKeypath, HexStr(secret.GetPubKey()));
     metadata.hd_seed_id = hdChain.seed_id;
     metadata.hd_seed_id_r = hdChain.seed_id_r;
     // update the chain model in the database
@@ -133,6 +136,69 @@ bool CWallet::IsHDEnabled()
     return !hdChain.seed_id.IsNull();
 }
 
+/**
+ * Set the wallet's HD seed
+ */
+void CWallet::SetHDSeed_512(const uint512& hashSeed)
+{
+    LOCK(cs_wallet);
+    LogPrintf("%s:%d Setting seed to %s\n", __func__, __LINE__, HexStr(hashSeed.begin(), hashSeed.end()));
+    CHDChain newHdChain;
+    newHdChain.nVersion = CHDChain::VERSION_HD_CHAIN_SPLIT;
+
+    // Encapsulate the 512 seed data into two keys. This allows for databasing the keys without modifying the encryption and databasing scheme
+    CKey key1;
+    key1.Set(hashSeed.begin(), hashSeed.begin()+32, false);
+    CKey key2;
+    key2.Set(hashSeed.begin()+32, hashSeed.begin()+64, false);
+
+    // Add seeds to the keystore
+    if (!mapKeyMetadata.count(key1.GetPubKey().GetID())) {
+        DeriveNewSeed(key1);
+        DeriveNewSeed(key2);
+    }
+
+    newHdChain.seed_id = key1.GetPubKey().GetID();
+    newHdChain.seed_id_r = key2.GetPubKey().GetID();
+    SetHDChain(newHdChain, false);
+}
+
+void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
+{
+    LOCK(cs_wallet);
+    if (!memonly && !CWalletDB(strWalletFile).WriteHDChain(chain))
+        throw std::runtime_error(std::string(__func__) + ": writing chain failed");
+
+    hdChain = chain;
+}
+
+CPubKey CWallet::DeriveNewSeed(const CKey& key)
+{
+    int64_t nCreationTime = GetTime();
+    CKeyMetadata metadata(nCreationTime);
+
+    // calculate the seed
+    CPubKey seed = key.GetPubKey();
+    //assert(key.VerifyPubKey(seed));
+
+    // set the hd keypath to "s" -> Seed, refers the seed to itself
+    metadata.hdKeypath     = "s";
+    metadata.hd_seed_id = seed.GetID();
+
+    {
+        LOCK(cs_wallet);
+
+        // mem store the metadata
+        mapKeyMetadata[seed.GetID()] = metadata;
+
+        // write the key&metadata to the database
+        if (!AddKeyPubKey(key, seed))
+            throw std::runtime_error(std::string(__func__) + ": AddKeyPubKey failed");
+    }
+
+    return seed;
+}
+
 CPubKey CWallet::GenerateNewKey()
 {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
@@ -142,8 +208,10 @@ CPubKey CWallet::GenerateNewKey()
     CKeyMetadata metadata(nCreationTime);
     CKey secret;
     if (CWallet::IsHDEnabled()) {
+        LogPrintf("%s:%d\n", __func__, __LINE__);
         DeriveNewChildKey(metadata, secret, /*internal*/false);
     } else {
+        LogPrintf("%s:%d HD WALLET IS NOT ENABLED!!\n", __func__, __LINE__);
         RandAddSeedPerfmon();
         secret.MakeNewKey(fCompressed);
     }

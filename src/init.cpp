@@ -695,63 +695,72 @@ bool AppInit2(boost::thread_group& threadGroup)
         uiInterface.InitMessage(_("Loading wallet..."));
 
         nStart = GetTimeMillis();
-//        bool fFirstRun = true;
-//        pwalletMain = new CWallet(strWalletFileName);
-//        DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun);
-//        if (nLoadWalletRet != DB_LOAD_OK)
-//        {
-//            if (nLoadWalletRet == DB_CORRUPT)
-//                strErrors << _("Error loading wallet.dat: Wallet corrupted") << "\n";
-//            else if (nLoadWalletRet == DB_NONCRITICAL_ERROR)
-//            {
-//                string msg(_("Warning: error reading wallet.dat! All keys read correctly, but transaction data"
-//                             " or address book entries might be missing or incorrect."));
-//                InitWarning(msg);
-//            }
-//            else if (nLoadWalletRet == DB_TOO_NEW)
-//                strErrors << _("Error loading wallet.dat: Wallet requires newer version of SaluS") << "\n";
-//            else if (nLoadWalletRet == DB_NEED_REWRITE)
-//            {
-//                strErrors << _("Wallet needed to be rewritten: restart SaluS to complete") << "\n";
-//                LogPrintf("%s", strErrors.str());
-//                return InitError(strErrors.str());
-//            }
-//            else
-//                strErrors << _("Error loading wallet.dat") << "\n";
-//        }
-LogPrintf("%s:%d\n", __func__, __LINE__);
         bool fFirstRun = true;
-        MnemonicWalletInit walletInit;
-        bool fSuccess = walletInit.Open();
-LogPrintf("%s:%d\n", __func__, __LINE__);
-        if (GetBoolArg("-upgradewallet", fFirstRun))
+        pwalletMain = new CWallet(strWalletFileName);
+        DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun);
+        if (nLoadWalletRet != DB_LOAD_OK)
         {
-            int nMaxVersion = GetArg("-upgradewallet", 0);
-            if (nMaxVersion == 0) // the -upgradewallet without argument case
+            if (nLoadWalletRet == DB_CORRUPT)
+                strErrors << _("Error loading wallet.dat: Wallet corrupted") << "\n";
+            else if (nLoadWalletRet == DB_NONCRITICAL_ERROR)
             {
-                LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
-                nMaxVersion = CLIENT_VERSION;
-                pwalletMain->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
+                string msg(_("Warning: error reading wallet.dat! All keys read correctly, but transaction data"
+                             " or address book entries might be missing or incorrect."));
+                InitWarning(msg);
+            }
+            else if (nLoadWalletRet == DB_TOO_NEW)
+                strErrors << _("Error loading wallet.dat: Wallet requires newer version of SaluS") << "\n";
+            else if (nLoadWalletRet == DB_NEED_REWRITE)
+            {
+                strErrors << _("Wallet needed to be rewritten: restart SaluS to complete") << "\n";
+                LogPrintf("%s", strErrors.str());
+                return InitError(strErrors.str());
             }
             else
-                LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
-            if (nMaxVersion < pwalletMain->GetVersion())
-                strErrors << _("Cannot downgrade wallet") << "\n";
-            pwalletMain->SetMaxVersion(nMaxVersion);
+                strErrors << _("Error loading wallet.dat") << "\n";
         }
+LogPrintf("%s:%d\n", __func__, __LINE__);
+        MnemonicWalletInit walletInit;
+        bool fNewSeed = false;
+        if (fFirstRun) {
+            if (!walletInit.Open(fNewSeed)) {
+                strErrors << _("Failed to get a seed!") << "\n";
+                return InitError(strErrors.str());
+            }
+            fFirstRun = !fNewSeed;
+        }
+LogPrintf("%s:%d\n", __func__, __LINE__);
+//        if (GetBoolArg("-upgradewallet", fFirstRun))
+//        {
+//            int nMaxVersion = GetArg("-upgradewallet", 0);
+//            if (nMaxVersion == 0) // the -upgradewallet without argument case
+//            {
+//                LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
+//                nMaxVersion = CLIENT_VERSION;
+//                pwalletMain->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
+//            }
+//            else
+//                LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
+//            if (nMaxVersion < pwalletMain->GetVersion())
+//                strErrors << _("Cannot downgrade wallet") << "\n";
+//            pwalletMain->SetMaxVersion(nMaxVersion);
+//        }
 
         if (fFirstRun)
         {
             // Create new keyUser and set as default key
             RandAddSeedPerfmon();
-
+            LogPrintf("%s:%d\n", __func__, __LINE__);
+            // Save the seed to the wallet
+            pwalletMain->SetHDSeed_512(walletInit.Seed());
+            LogPrintf("%s:%d\n", __func__, __LINE__);
             CPubKey newDefaultKey;
             if (pwalletMain->GetKeyFromPool(newDefaultKey)) {
                 pwalletMain->SetDefaultKey(newDefaultKey);
                 if (!pwalletMain->SetAddressBookName(pwalletMain->vchDefaultKey.GetID(), ""))
                     strErrors << _("Cannot write default address") << "\n";
             }
-
+            LogPrintf("%s:%d\n", __func__, __LINE__);
             pwalletMain->SetBestChain(CBlockLocator(pindexBest));
         }
 
@@ -759,7 +768,7 @@ LogPrintf("%s:%d\n", __func__, __LINE__);
         LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
 
         RegisterWallet(pwalletMain);
-
+        LogPrintf("%s:%d\n", __func__, __LINE__);
         CBlockIndex *pindexRescan = pindexBest;
         if (GetBoolArg("-rescan", false))
             pindexRescan = pindexGenesisBlock;
@@ -782,6 +791,7 @@ LogPrintf("%s:%d\n", __func__, __LINE__);
             pwalletMain->SetBestChain(CBlockLocator(pindexBest));
             nWalletDBUpdated++;
         }
+        LogPrintf("%s:%d\n", __func__, __LINE__);
     } // (!fDisableWallet)
 #else // ENABLE_WALLET
     LogPrintf("No wallet compiled in!\n");
