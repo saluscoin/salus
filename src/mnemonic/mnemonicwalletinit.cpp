@@ -76,49 +76,19 @@ bool MnemonicWalletInit::Open(bool& fNewSeed)
     }
     LogPrintf("%s: seed %s\n", __func__, m_seed.GetHex());
 
-//    //todo: pass the seedphrase into the wallet
-//    bool fFirstRun = true;
-//    pwalletMain = new CWallet(walletFile);
-//    DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun);
-//
-//    std::string strErrors;
-//    if (nLoadWalletRet != DB_LOAD_OK)
-//    {
-//        if (nLoadWalletRet == DB_CORRUPT)
-//            strErrors += _("Error loading wallet.dat: Wallet corrupted") + "\n";
-//        else if (nLoadWalletRet == DB_NONCRITICAL_ERROR)
-//        {
-//            string msg(_("Warning: error reading wallet.dat! All keys read correctly, but transaction data"
-//                         " or address book entries might be missing or incorrect."));
-//            //InitWarning(msg);
-//            LogPrintf("%s\n", msg);
-//        }
-//        else if (nLoadWalletRet == DB_TOO_NEW)
-//            strErrors += _("Error loading wallet.dat: Wallet requires newer version of SaluS") + "\n";
-//        else if (nLoadWalletRet == DB_NEED_REWRITE)
-//        {
-//            strErrors += _("Wallet needed to be rewritten: restart SaluS to complete") + "\n";
-//            LogPrintf("%s", strErrors);
-//            return false;
-//        }
-//        else
-//            strErrors += _("Error loading wallet.dat") + "\n";
-//    }
-
     if (fNewSeed) {
         // Create new keyUser and set as default key
         RandAddSeedPerfmon();
-        LogPrintf("%s:%d\n", __func__, __LINE__);
+
         // Save the seed to the wallet
         pwalletMain->SetHDSeed_512(m_seed);
-        LogPrintf("%s:%d\n", __func__, __LINE__);
+
         CPubKey newDefaultKey;
         if (pwalletMain->GetKeyFromPool(newDefaultKey)) {
             pwalletMain->SetDefaultKey(newDefaultKey);
             if (!pwalletMain->SetAddressBookName(pwalletMain->vchDefaultKey.GetID(), ""))
                 LogPrintf("Cannot write default address\n");
         }
-        LogPrintf("%s:%d\n", __func__, __LINE__);
         pwalletMain->SetBestChain(CBlockLocator(pindexBest));
     }
 

@@ -719,7 +719,8 @@ bool AppInit2(boost::thread_group& threadGroup)
             else
                 strErrors << _("Error loading wallet.dat") << "\n";
         }
-LogPrintf("%s:%d\n", __func__, __LINE__);
+
+        //If this is a new wallet, then create the seed words and import them.
         MnemonicWalletInit walletInit;
         bool fNewSeed = false;
         if (fFirstRun) {
@@ -729,46 +730,12 @@ LogPrintf("%s:%d\n", __func__, __LINE__);
             }
             fFirstRun = !fNewSeed;
         }
-LogPrintf("%s:%d\n", __func__, __LINE__);
-//        if (GetBoolArg("-upgradewallet", fFirstRun))
-//        {
-//            int nMaxVersion = GetArg("-upgradewallet", 0);
-//            if (nMaxVersion == 0) // the -upgradewallet without argument case
-//            {
-//                LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
-//                nMaxVersion = CLIENT_VERSION;
-//                pwalletMain->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
-//            }
-//            else
-//                LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
-//            if (nMaxVersion < pwalletMain->GetVersion())
-//                strErrors << _("Cannot downgrade wallet") << "\n";
-//            pwalletMain->SetMaxVersion(nMaxVersion);
-//        }
-
-        if (fFirstRun)
-        {
-            // Create new keyUser and set as default key
-            RandAddSeedPerfmon();
-            LogPrintf("%s:%d\n", __func__, __LINE__);
-            // Save the seed to the wallet
-            pwalletMain->SetHDSeed_512(walletInit.Seed());
-            LogPrintf("%s:%d\n", __func__, __LINE__);
-            CPubKey newDefaultKey;
-            if (pwalletMain->GetKeyFromPool(newDefaultKey)) {
-                pwalletMain->SetDefaultKey(newDefaultKey);
-                if (!pwalletMain->SetAddressBookName(pwalletMain->vchDefaultKey.GetID(), ""))
-                    strErrors << _("Cannot write default address") << "\n";
-            }
-            LogPrintf("%s:%d\n", __func__, __LINE__);
-            pwalletMain->SetBestChain(CBlockLocator(pindexBest));
-        }
 
         LogPrintf("%s", strErrors.str());
         LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
 
         RegisterWallet(pwalletMain);
-        LogPrintf("%s:%d\n", __func__, __LINE__);
+
         CBlockIndex *pindexRescan = pindexBest;
         if (GetBoolArg("-rescan", false))
             pindexRescan = pindexGenesisBlock;
