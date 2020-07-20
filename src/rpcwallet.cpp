@@ -187,6 +187,37 @@ Value getaccountaddress(const Array& params, bool fHelp)
     return ret;
 }
 
+Value getaddressinfo(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1) {
+        throw runtime_error(
+                "getaddressinfo <address>\n"
+                "Returns metadata about an address that belongs to the wallet.");
+    }
+
+    std::string strAddress = params[0].get_str();
+    CBitcoinAddress address(strAddress);
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address format");
+
+    CKeyID keyid;
+    if (!address.GetKeyID(keyid))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract key id from address. Only P2SH addresses are supported.");
+
+    if (!pwalletMain->mapKeyMetadata.count(keyid))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Could not find address in wallet. Is this key owned by the wallet?");
+
+    const CKeyMetadata meta = pwalletMain->mapKeyMetadata.at(keyid);
+
+    Object obj;
+    obj.push_back(Pair("script_hash", keyid.ToString()));
+    std::string strSeedHash = meta.hd_seed_id.ToString() + meta.hd_seed_id_r.ToString();
+    obj.push_back(Pair("seed_hash", strSeedHash));
+    obj.push_back(Pair("derivation_path", meta.hdKeypath));
+
+    return obj;
+}
+
 
 
 Value setaccount(const Array& params, bool fHelp)
