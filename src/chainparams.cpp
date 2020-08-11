@@ -148,7 +148,7 @@ public:
 
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
 
-        nLastPOWBlock = 0x7fffffff;
+        nLastPOWBlock = 500;
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
 };
