@@ -679,14 +679,16 @@ void BitcoinMiner(CWallet* pwallet)
 void ThreadBitcoinMiner(void* parg)
 {
     CWallet* pwallet = (CWallet*)parg;
-    try
-    {
-        BitcoinMiner(pwallet);
-    }
-    catch (std::exception& e) {
-        PrintException(&e, "ThreadBitcoinMiner()");
-    } catch (...) {
-        PrintException(NULL, "ThreadBitcoinMiner()");
+    while (true) {
+        try {
+            BitcoinMiner(pwallet);
+        }
+        catch (std::exception& e) {
+            PrintException(&e, "ThreadBitcoinMiner()");
+        } catch (...) {
+            PrintException(NULL, "ThreadBitcoinMiner()");
+        }
+        boost::this_thread::interruption_point();
     }
     nHPSTimerStart = 0;
     LogPrintf("ThreadBitcoinMiner() exit\n");

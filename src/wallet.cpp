@@ -171,12 +171,14 @@ void CWallet::SetHDSeed_512(const uint512& hashSeed)
 void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
 {
     LOCK(cs_wallet);
+    LogPrintf("%s:%d\n", __func__, __LINE__);
     if (!memonly && !CWalletDB(strWalletFile).WriteHDChain(chain))
         throw std::runtime_error(std::string(__func__) + ": writing chain failed");
 
+    LogPrintf("%s:%d\n", __func__, __LINE__);
     uint256 hashChain = chain.GetId();
-    if (!m_mapHdChains.count(chain.GetId()))
-        throw std::runtime_error(std::string(__func__) + ": missing hd chain in m_mapHdChains");
+    m_mapHdChains[hashChain] = chain;
+    LogPrintf("%s:%d\n", __func__, __LINE__);
 
     m_hashActiveHdChain = hashChain;
 }

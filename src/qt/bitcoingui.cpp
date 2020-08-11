@@ -11,6 +11,7 @@
 
 #include "transactiontablemodel.h"
 #include "addressbookpage.h"
+#include "addressesdialog.h"
 #include "sendcoinsdialog.h"
 #include "signverifymessagedialog.h"
 #include "optionsdialog.h"
@@ -130,6 +131,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     sendCoinsPage = new SendCoinsDialog(this);
 
+    addressesDialog = new AddressesDialog(this);
+
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
     centralStackedWidget = new QStackedWidget(this);
@@ -138,6 +141,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralStackedWidget->addWidget(addressBookPage);
     centralStackedWidget->addWidget(receiveCoinsPage);
     centralStackedWidget->addWidget(sendCoinsPage);
+    centralStackedWidget->addWidget(addressesDialog);
 
     QWidget *centralWidget = new QWidget();
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
@@ -258,6 +262,11 @@ void BitcoinGUI::createActions()
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
     tabGroup->addAction(sendCoinsAction);
 
+    addressesPageAction = new QAction("Addresses", this);
+    addressesPageAction->setToolTip(tr("Manage wallet seeds, accounts, and addresses"));
+    addressesPageAction->setCheckable(true);
+    tabGroup->addAction(addressesPageAction);
+
     historyAction = new QAction(QIcon(fUseRedTheme ? ":/icons/red/history" : ":/icons/history"), tr("&TRANSACTIONS"), this);
     historyAction->setToolTip(tr("Browse transaction history"));
     historyAction->setCheckable(true);
@@ -276,6 +285,8 @@ void BitcoinGUI::createActions()
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
+    connect(addressesPageAction, &QAction::triggered, this, &BitcoinGUI::gotoAddressesPage);
+    //connect(addressesPageAction, &QAction::triggered, this, &BitcoinGUI::showNormalIfMinimized);
     connect(historyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -405,6 +416,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(overviewAction);
     toolbar->addAction(receiveCoinsAction);
     toolbar->addAction(sendCoinsAction);
+    toolbar->addAction(addressesPageAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
 
@@ -477,6 +489,7 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
         // Put transaction list in tabs
         transactionView->setModel(walletModel);
         overviewPage->setWalletModel(walletModel);
+        addressesDialog->SetWalletModel(walletModel);
         addressBookPage->setModel(walletModel->getAddressTableModel());
         receiveCoinsPage->setModel(walletModel->getAddressTableModel());
         sendCoinsPage->setModel(walletModel);
@@ -912,6 +925,16 @@ void BitcoinGUI::gotoSendCoinsPage()
 {
     sendCoinsAction->setChecked(true);
     centralStackedWidget->setCurrentWidget(sendCoinsPage);
+
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+void BitcoinGUI::gotoAddressesPage()
+{
+    addressesPageAction->setChecked(true);
+    centralStackedWidget->setCurrentWidget(addressesDialog);
+    addressesDialog->ResetSelections();
 
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);

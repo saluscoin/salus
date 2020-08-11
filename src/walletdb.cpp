@@ -558,12 +558,24 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         }
         else if (strType == "hdchain")
         {
+            LogPrintf("%s:%d db_key %s\n", __func__, __LINE__, strType);
             CHDChain chain;
+            LogPrintf("%s:%d db_key %s\n", __func__, __LINE__, strType);
             ssValue >> chain;
+            LogPrintf("%s:%d db_key pwallet exists? %d %s\n", __func__, __LINE__, pwallet != nullptr, strType);
             pwallet->SetHDChain(chain, true);
+            LogPrintf("%s:%d db_key %s\n", __func__, __LINE__, strType);
+        } else if (strType == "bestblock") {
+            CBlockLocator locator;
+            ssValue >> locator;
+           // pwallet->SetBestChain(locator);
+        }
+        else {
+            LogPrintf("%s:%d Failed to load db_key %s\n", __func__, __LINE__, strType);
         }
     } catch (...)
     {
+        LogPrintf("%s:%d Failed to loading db, caught error on type %s\n", __func__, __LINE__, strType);
         return false;
     }
     return true;

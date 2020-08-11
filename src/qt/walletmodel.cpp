@@ -483,3 +483,18 @@ void WalletModel::listLockedCoins(std::vector<COutPoint>& vOutpts)
 {
     return;
 }
+
+uint256 WalletModel::GetActiveSeedId() const
+{
+    return wallet->ActiveHDChain()->GetId();
+}
+
+std::set<uint256> WalletModel::GetSeedIds() const
+{
+    return wallet->GetSeedIds();
+}
+
+std::vector<std::pair<CKeyID, string> > WalletModel::GetAccountAddresses(const uint256 &hashSeed, uint32_t nAccount)
+{
+    return wallet->GetAccountAddresses(hashSeed, nAccount);
+}

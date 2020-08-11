@@ -12,6 +12,7 @@ class WalletModel;
 class TransactionView;
 class OverviewPage;
 class AddressBookPage;
+class AddressesDialog;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class Notificator;
@@ -65,6 +66,7 @@ private:
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
+    AddressesDialog *addressesDialog;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     QLabel *labelEncryptionIcon;
@@ -80,6 +82,7 @@ private:
     QAction *quitAction;
     QAction *sendCoinsAction;
     QAction *addressBookAction;
+    QAction *addressesPageAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
@@ -166,6 +169,8 @@ private slots:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage();
+    /** Switch to addresses page */
+    void gotoAddressesPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

@@ -1,18 +1,32 @@
 #include "addressesdialog.h"
 #include "ui_addressesdialog.h"
-#include <wallet.h>
+#include "walletmodel.h"
 
-AddressesDialog::AddressesDialog(CWallet* pwallet, QWidget *parent) :
+AddressesDialog::AddressesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddressesDialog)
 {
     ui->setupUi(this);
-    m_wallet = pwallet;
 }
 
 AddressesDialog::~AddressesDialog()
 {
     delete ui;
+}
+
+void AddressesDialog::ResetSelections()
+{
+    //Set selected seed to the main seed
+    m_hashSeedSelected = m_wallet->GetActiveSeedId();
+
+    PopulateSeedsView();
+    PopulateAccountsView();
+    PopulateAddressesView();
+}
+
+void AddressesDialog::SetWalletModel(WalletModel *model)
+{
+    m_wallet = model;
 }
 
 /**

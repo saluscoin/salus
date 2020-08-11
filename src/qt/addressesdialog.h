@@ -8,19 +8,22 @@ namespace Ui {
 class AddressesDialog;
 }
 
-class CWallet;
+class WalletModel;
 
 class AddressesDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit AddressesDialog(CWallet* pwallet, QWidget *parent = nullptr);
+    explicit AddressesDialog(QWidget *parent = nullptr);
     ~AddressesDialog();
+
+    void ResetSelections();
+    void SetWalletModel(WalletModel* model);
 
 private:
     Ui::AddressesDialog *ui;
-    CWallet* m_wallet;
+    WalletModel* m_wallet;
     uint256 m_hashSeedSelected;
     uint32_t m_nAccountSelected;
     uint32_t m_nAddressSelected;
