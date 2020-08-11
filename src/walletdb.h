@@ -71,6 +71,8 @@ public:
     }
 
     bool Is512BitSeed() const { return !seed_id_r.IsNull(); }
+
+    uint256 GetId() const;
 };
 
 class CKeyMetadata

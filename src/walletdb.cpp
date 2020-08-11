@@ -864,3 +864,8 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename)
 {
     return CWalletDB::Recover(dbenv, filename, false);
 }
+
+uint256 CHDChain::GetId() const
+{
+    return Hash(seed_id.begin(), seed_id.end(), seed_id_r.begin(), seed_id_r.end());
+}

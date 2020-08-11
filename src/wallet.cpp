@@ -76,12 +76,12 @@ CExtKey CWallet::DeriveBIP32Path(const BIP32Path& vPath)
     CExtKey keyCoin;               //key at m/44'/coinid'
 
     // try to get the seed
-    if (!GetKey(hdChain.seed_id, seed1))
+    if (!GetKey(ActiveHDChain()->seed_id, seed1))
         throw std::runtime_error(std::string(__func__) + ": seed not found");
 
     // veil default is 512 bit seed
-    if (hdChain.Is512BitSeed()) {
-        if (!GetKey(hdChain.seed_id_r, seed2))
+    if (ActiveHDChain()->Is512BitSeed()) {
+        if (!GetKey(ActiveHDChain()->seed_id_r, seed2))
             throw std::runtime_error(std::string(__func__) + ": seed2 not found");
         keyMaster.SetSeedFromKeys(seed1, seed2);
     } else {
@@ -111,29 +111,31 @@ void CWallet::DeriveNewChildKey(CKeyMetadata& metadata, CKey& secret, bool inter
     CExtKey childKey;
     do {
         if (internal) {
-            accountKey.Derive(childKey, hdChain.nInternalChainCounter | BIP32_HARDENED_KEY_LIMIT);
-            metadata.hdKeypath = strprintf("m/44'/%d'/0'/1/%d", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), hdChain.nInternalChainCounter);
-            hdChain.nInternalChainCounter++;
+            accountKey.Derive(childKey, ActiveHDChain()->nInternalChainCounter | BIP32_HARDENED_KEY_LIMIT);
+            metadata.hdKeypath = strprintf("m/44'/%d'/0'/1/%d", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), ActiveHDChain()->nInternalChainCounter);
+            ActiveHDChain()->nInternalChainCounter++;
         } else {
             //accountKey.Derive(childKey, hdChain.nExternalChainCounter | BIP32_HARDENED_KEY_LIMIT);
-            accountKey.Derive(childKey, hdChain.nExternalChainCounter);
-            metadata.hdKeypath = strprintf("m/44'/%d'/0'/0/%d", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), hdChain.nExternalChainCounter);
-            hdChain.nExternalChainCounter++;
+            accountKey.Derive(childKey, ActiveHDChain()->nExternalChainCounter);
+            metadata.hdKeypath = strprintf("m/44'/%d'/0'/0/%d", (Params().BIP44ID() - BIP32_HARDENED_KEY_LIMIT), ActiveHDChain()->nExternalChainCounter);
+            ActiveHDChain()->nExternalChainCounter++;
         }
     } while (HaveKey(childKey.key.GetPubKey().GetID()));
 
     secret = childKey.key;
     LogPrintf("Final Key %s=%s\n", metadata.hdKeypath, HexStr(secret.GetPubKey()));
-    metadata.hd_seed_id = hdChain.seed_id;
-    metadata.hd_seed_id_r = hdChain.seed_id_r;
+    metadata.hd_seed_id = ActiveHDChain()->seed_id;
+    metadata.hd_seed_id_r = ActiveHDChain()->seed_id_r;
     // update the chain model in the database
-    if (!CWalletDB(strWalletFile).WriteHDChain(hdChain))
+    if (!CWalletDB(strWalletFile).WriteHDChain(*ActiveHDChain()))
         throw std::runtime_error(std::string(__func__) + ": Writing HD chain model failed");
 }
 
 bool CWallet::IsHDEnabled()
 {
-    return !hdChain.seed_id.IsNull();
+    if (!ActiveHDChain())
+        return false;
+    return !ActiveHDChain()->seed_id.IsNull();
 }
 
 /**
@@ -160,6 +162,9 @@ void CWallet::SetHDSeed_512(const uint512& hashSeed)
 
     newHdChain.seed_id = key1.GetPubKey().GetID();
     newHdChain.seed_id_r = key2.GetPubKey().GetID();
+
+    m_mapHdChains[newHdChain.GetId()] = newHdChain;
+
     SetHDChain(newHdChain, false);
 }
 
@@ -169,7 +174,66 @@ void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
     if (!memonly && !CWalletDB(strWalletFile).WriteHDChain(chain))
         throw std::runtime_error(std::string(__func__) + ": writing chain failed");
 
-    hdChain = chain;
+    uint256 hashChain = chain.GetId();
+    if (!m_mapHdChains.count(chain.GetId()))
+        throw std::runtime_error(std::string(__func__) + ": missing hd chain in m_mapHdChains");
+
+    m_hashActiveHdChain = hashChain;
+}
+
+CHDChain* CWallet::ActiveHDChain()
+{
+    return &m_mapHdChains[m_hashActiveHdChain];
+}
+
+/**
+ * @brief Get a set of the master seed id's that are currently held by the wallet.
+ * @return
+ */
+std::set<uint256> CWallet::GetSeedIds() const
+{
+    LOCK(cs_wallet);
+    std::set<uint256> setSeedId;
+    for (const auto& pair : m_mapHdChains) {
+        setSeedId.emplace(pair.first);
+    }
+
+    return setSeedId;
+}
+
+/**
+ * @brief return a list of addresses that belong to a specific account
+ * @param hashSeed The hash of the master seed that the account belongs to
+ * @param nAccount The index of the account.
+ * @return map of pubkey hashes and base58 encoded address associated with it.
+ */
+std::vector<std::pair<CKeyID, std::string>> CWallet::GetAccountAddresses(const uint256& hashSeed, uint32_t nAccount)
+{
+    const CHDChain* pchain = nullptr;
+    for (const auto& pair : m_mapHdChains) {
+        if (pair.first != hashSeed)
+            continue;
+        pchain = &pair.second;
+    }
+
+    //Return if chain not found
+    if (!pchain)
+        return {};
+
+    //Find addresses that belong to the account be searching through the key meta data.
+    std::vector<std::pair<CKeyID, std::string>> vecAddresses;
+    for (const auto& pair : mapKeyMetadata) {
+        const CKeyID& id = pair.first;
+        const CKeyMetadata& meta = pair.second;
+        if (meta.hd_seed_id_r != pchain->seed_id_r || meta.hd_seed_id != pchain->seed_id)
+            continue;
+
+        //Create a base58 encoded address string
+        CBitcoinAddress address(id);
+        vecAddresses.emplace_back(std::make_pair(id, address.ToString()));
+    }
+
+    return vecAddresses;
 }
 
 CPubKey CWallet::DeriveNewSeed(const CKey& key)
