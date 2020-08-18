@@ -10,3 +10,12 @@
 - **50** confirm stake minimum for eligibility
 - **p2p port** 22534
 - **rpc port** 22530
+
+- **WebSite** https://saluscoin.info/
+- **Divitia** https://divitia.com/
+- **Discord** https://discord.gg/3pmFUhM
+- **Explorer #1** https://chainz.cryptoid.info/sls/
+- **Explorer #2** http://www.presstab.tools/phpexplorer/SLS/
+- **Explorer #3** https://cryptobe.com/chain/Salus
+- **Forum** https://hive.blog/@salus
+- **Twitter** @SaluS_SLS
