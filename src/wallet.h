@@ -151,20 +151,20 @@ public:
 
     // keystore implementation
     // Generate a new key
-    CPubKey GenerateNewKey();
+    CPubKey GenerateNewKey(const uint32_t& nAccount = 0);
 
     /* the HD chain data model (external chain counters) */
     uint256 m_hashActiveHdChain;
     std::map<uint256, CHDChain> m_mapHdChains;
     std::set<uint256> GetSeedIds() const;
-    std::vector<std::pair<CKeyID, std::string>> GetAccountAddresses(const uint256& hashSeed, uint32_t nAccount);
+    std::map<std::string, std::pair<CKeyID, std::string>> GetAccountAddresses(const uint256& hashSeed, uint32_t nAccount);
     CHDChain* ActiveHDChain();
     bool IsHDEnabled();
     void SetHDChain(const CHDChain& chain, bool memonly);
     void SetHDSeed_512(const uint512& hashSeed);
     CPubKey DeriveNewSeed(const CKey& key);
 
-    void DeriveNewChildKey(CKeyMetadata& metadata, CKey& secret, bool internal = false);
+    void DeriveNewChildKey(CKeyMetadata& metadata, CKey& secret, uint32_t nAccount, bool internal = false);
     CExtKey DeriveBIP32Path(const BIP32Path& vPath);
 
     // Adds a key to the store, and saves it to disk.

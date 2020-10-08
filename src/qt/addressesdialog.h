@@ -21,6 +21,13 @@ public:
     void ResetSelections();
     void SetWalletModel(WalletModel* model);
 
+private slots:
+
+
+    void on_buttonNewAccount_clicked();
+
+    void on_buttonNewAddress_clicked();
+
 private:
     Ui::AddressesDialog *ui;
     WalletModel* m_wallet;

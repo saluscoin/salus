@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>516</width>
     <height>300</height>
    </rect>
   </property>
@@ -86,7 +86,7 @@
         <widget class="QListWidget" name="listwidgetAccounts"/>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="buttonNewAccount">
          <property name="text">
           <string>New Account</string>
          </property>

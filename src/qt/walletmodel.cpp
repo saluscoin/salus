@@ -494,7 +494,14 @@ std::set<uint256> WalletModel::GetSeedIds() const
     return wallet->GetSeedIds();
 }
 
-std::vector<std::pair<CKeyID, string> > WalletModel::GetAccountAddresses(const uint256 &hashSeed, uint32_t nAccount)
+std::map<std::string, std::pair<CKeyID, string> > WalletModel::GetAccountAddresses(const uint256 &hashSeed, uint32_t nAccount)
 {
     return wallet->GetAccountAddresses(hashSeed, nAccount);
+}
+
+bool WalletModel::GenerateNewAddress(const uint32_t& nAccount, std::string& strAddress)
+{
+    CPubKey pubkey = wallet->GenerateNewKey(nAccount);
+    strAddress = CBitcoinAddress(pubkey.GetID()).ToString();
+    return pubkey.IsValid();
 }

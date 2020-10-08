@@ -84,6 +84,7 @@ public:
     std::string hdKeypath; //optional HD/bip32 keypath
     CKeyID hd_seed_id; //id of the HD seed used to derive this key
     CKeyID hd_seed_id_r; //if the key is derived using 512 bit seed, two keys are needed
+    uint32_t nAccount; //Account that the Key belongs to
 
     CKeyMetadata()
     {
@@ -104,6 +105,7 @@ public:
             READWRITE(hdKeypath);
             READWRITE(hd_seed_id);
             READWRITE(hd_seed_id_r);
+            READWRITE(nAccount);
         }
     )
 
@@ -114,6 +116,7 @@ public:
         hdKeypath.clear();
         hd_seed_id.SetNull();
         hd_seed_id_r.SetNull();
+        nAccount = 0;
     }
 };
 

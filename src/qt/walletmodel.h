@@ -125,7 +125,8 @@ public:
     void listLockedCoins(std::vector<COutPoint>& vOutpts);
     uint256 GetActiveSeedId() const;
     std::set<uint256> GetSeedIds() const;
-    std::vector<std::pair<CKeyID, std::string>> GetAccountAddresses(const uint256& hashSeed, uint32_t nAccount);
+    std::map<std::string, std::pair<CKeyID, std::string>> GetAccountAddresses(const uint256& hashSeed, uint32_t nAccount);
+    bool GenerateNewAddress(const uint32_t& nAccount, std::string& strAddress);
 
 private:
     CWallet *wallet;

@@ -1,3 +1,4 @@
+#include <util.h>
 #include "addressesdialog.h"
 #include "ui_addressesdialog.h"
 #include "walletmodel.h"
@@ -60,9 +61,28 @@ void AddressesDialog::PopulateAccountsView()
  */
 void AddressesDialog::PopulateAddressesView()
 {
-    std::vector<std::pair<CKeyID, std::string>> vecAddresses = m_wallet->GetAccountAddresses(m_hashSeedSelected, m_nAccountSelected);
+    std::map<std::string, std::pair<CKeyID, std::string>> mapAddresses = m_wallet->GetAccountAddresses(m_hashSeedSelected, m_nAccountSelected);
     ui->listwidgetAddresses->clear();
-    for (const auto& pair : vecAddresses) {
-        ui->listwidgetAddresses->addItem(pair.second.c_str());
+    std::map<int, QString> mapAddressSorted;
+    for (const auto& pair : mapAddresses) {
+        const auto& strAddress = pair.second.second;
+        QStringList ql = QString(pair.first.c_str()).split("/");
+        mapAddressSorted.emplace(ql.back().toInt(), strAddress.c_str());
     }
+
+    for (const auto& pair : mapAddressSorted) {
+        ui->listwidgetAddresses->addItem(pair.second);
+    }
+}
+
+void AddressesDialog::on_buttonNewAccount_clicked()
+{
+
+}
+
+void AddressesDialog::on_buttonNewAddress_clicked()
+{
+    std::string strAddress;
+    m_wallet->GenerateNewAddress(m_nAccountSelected, strAddress);
+    PopulateAddressesView();
 }
