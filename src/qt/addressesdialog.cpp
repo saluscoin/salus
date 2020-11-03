@@ -2,12 +2,16 @@
 #include "addressesdialog.h"
 #include "ui_addressesdialog.h"
 #include "walletmodel.h"
+#include "mnemonic/mnemonicwalletinit.h"
+
+#include <QMessageBox>
 
 AddressesDialog::AddressesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddressesDialog)
 {
     ui->setupUi(this);
+    connect(ui->listwidgetSeeds, &QListWidget::itemSelectionChanged, this, &AddressesDialog::SeedSelectionChanged);
 }
 
 AddressesDialog::~AddressesDialog()
@@ -17,6 +21,14 @@ AddressesDialog::~AddressesDialog()
 
 void AddressesDialog::ResetSelections()
 {
+    if (!m_wallet->IsHdWallet()) {
+        //HD wallet is not yet enabled
+        QMessageBox box;
+        box.setText("This wallet has not yet been upgraded to an HD Wallet. To upgrade use the Create New Seed Button.");
+        box.exec();
+        return;
+    }
+
     //Set selected seed to the main seed
     m_hashSeedSelected = m_wallet->GetActiveSeedId();
 
@@ -31,14 +43,45 @@ void AddressesDialog::SetWalletModel(WalletModel *model)
 }
 
 /**
+ * @brief AddressesDialog::SeedSelectionChanged The selection in the seeds list widget has changed. Update the current selected seed
+ * and the views.
+ */
+void AddressesDialog::SeedSelectionChanged()
+{
+    QString qstrSelection = ui->listwidgetSeeds->currentItem()->text();
+    uint256 hashSelection = uint256S(qstrSelection.toStdString());
+    if (m_wallet->GetSeedIds().count(hashSelection)) {
+        m_hashSeedSelected = hashSelection;
+    }
+
+    PopulateAccountsView();
+    PopulateAddressesView();
+}
+
+/**
  * @brief AddressesDialog::PopulateSeedsView Get a list of seed id's from the wallet and populate the list view with the available seeds
  */
 void AddressesDialog::PopulateSeedsView()
 {
     std::set<uint256> setSeedId = m_wallet->GetSeedIds();
     ui->listwidgetSeeds->clear();
+
+    //If the wallet does not currently have an HD seed, then do not add anything
+    if (!m_wallet->IsHdWallet())
+        return;
+
     for (const uint256& id : setSeedId) {
-        ui->listwidgetSeeds->addItem(id.GetHex().c_str());
+        QListWidgetItem* item = new QListWidgetItem(id.GetHex().c_str());
+
+        LogPrintf("current: %s seed selected %s\n", id.GetHex(), m_hashSeedSelected.GetHex());
+        ui->listwidgetSeeds->addItem(item);
+
+        if (id == m_hashSeedSelected) {
+            ui->listwidgetSeeds->blockSignals(true);
+            ui->listwidgetSeeds->setCurrentItem(item);
+            ui->listwidgetSeeds->blockSignals(false);
+            LogPrintf("SetSelected\n");
+        }
     }
 }
 
@@ -48,7 +91,7 @@ void AddressesDialog::PopulateSeedsView()
 void AddressesDialog::PopulateAccountsView()
 {
     ui->listwidgetAccounts->clear();
-    if (m_hashSeedSelected == 0)
+    if (m_hashSeedSelected == 0 || !m_wallet->IsHdWallet())
         return;
 
     //Currently the only account that is allowed to be used is account 0, so just populate with that.
@@ -61,6 +104,9 @@ void AddressesDialog::PopulateAccountsView()
  */
 void AddressesDialog::PopulateAddressesView()
 {
+    if (!m_wallet->IsHdWallet())
+        return;
+
     std::map<std::string, std::pair<CKeyID, std::string>> mapAddresses = m_wallet->GetAccountAddresses(m_hashSeedSelected, m_nAccountSelected);
     ui->listwidgetAddresses->clear();
     std::map<int, QString> mapAddressSorted;
@@ -85,4 +131,18 @@ void AddressesDialog::on_buttonNewAddress_clicked()
     std::string strAddress;
     m_wallet->GenerateNewAddress(m_nAccountSelected, strAddress);
     PopulateAddressesView();
+}
+
+void AddressesDialog::on_buttonAddSeed_clicked()
+{
+    //If this is a new wallet, then create the seed words and import them.
+    MnemonicWalletInit walletInit;
+    bool fNewSeed = false;
+    if (!walletInit.Open(fNewSeed)) {
+        QMessageBox box;
+        box.setText("Failed to add new seed.");
+        box.exec();
+    } else {
+        ResetSelections();
+    }
 }

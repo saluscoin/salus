@@ -45,16 +45,9 @@
         <widget class="QListWidget" name="listwidgetSeeds"/>
        </item>
        <item>
-        <widget class="QPushButton" name="buttonImportSeed">
+        <widget class="QPushButton" name="buttonAddSeed">
          <property name="text">
-          <string>Import Seed Phrase</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="buttonCreateSeed">
-         <property name="text">
-          <string>Create New Seed</string>
+          <string>Add New Seed</string>
          </property>
         </widget>
        </item>

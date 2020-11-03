@@ -81,6 +81,7 @@ bool MnemonicWalletInit::Open(bool& fNewSeed)
         RandAddSeedPerfmon();
 
         // Save the seed to the wallet
+        assert(m_seed != uint512(0));
         pwalletMain->SetHDSeed_512(m_seed);
 
         CPubKey newDefaultKey;

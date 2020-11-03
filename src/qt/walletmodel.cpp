@@ -505,3 +505,8 @@ bool WalletModel::GenerateNewAddress(const uint32_t& nAccount, std::string& strA
     strAddress = CBitcoinAddress(pubkey.GetID()).ToString();
     return pubkey.IsValid();
 }
+
+bool WalletModel::IsHdWallet() const
+{
+    return wallet->IsHDEnabled();
+}

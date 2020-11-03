@@ -262,7 +262,7 @@ void BitcoinGUI::createActions()
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
     tabGroup->addAction(sendCoinsAction);
 
-    addressesPageAction = new QAction("Addresses", this);
+    addressesPageAction = new QAction(tr("&HD WALLET"), this);
     addressesPageAction->setToolTip(tr("Manage wallet seeds, accounts, and addresses"));
     addressesPageAction->setCheckable(true);
     tabGroup->addAction(addressesPageAction);

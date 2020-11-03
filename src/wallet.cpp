@@ -163,7 +163,14 @@ void CWallet::SetHDSeed_512(const uint512& hashSeed)
     newHdChain.seed_id = key1.GetPubKey().GetID();
     newHdChain.seed_id_r = key2.GetPubKey().GetID();
 
+    //If this is the first seed, then the wallet may have an empty seed loaded into maphdchains. Erase that.
+    if (m_mapHdChains.size() == 1) {
+        if (m_mapHdChains.count(uint256(0)))
+            m_mapHdChains.erase(uint256(0));
+    }
+
     m_mapHdChains[newHdChain.GetId()] = newHdChain;
+    LogPrintf("%s:%d adding seed hash %s to maphdchains\n", __func__, __LINE__, newHdChain.GetId().GetHex());
 
     SetHDChain(newHdChain, false);
 }
@@ -178,7 +185,7 @@ void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
     LogPrintf("%s:%d\n", __func__, __LINE__);
     uint256 hashChain = chain.GetId();
     m_mapHdChains[hashChain] = chain;
-    LogPrintf("%s:%d\n", __func__, __LINE__);
+    LogPrintf("%s:%d to hash %s\n", __func__, __LINE__, hashChain.GetHex());
 
     m_hashActiveHdChain = hashChain;
 }

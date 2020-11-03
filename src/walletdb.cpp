@@ -98,11 +98,14 @@ bool CWalletDB::WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey)
 bool CWalletDB::WriteHDChain(const CHDChain& chain)
 {
     nWalletDBUpdated++;
-    return Write(std::string("hdchain"), chain);
+    uint256 id = chain.GetId();
+    LogPrintf("%s:%d writing chain id %s\n", __func__, __LINE__, id.GetHex());
+    return Write(std::make_pair(std::string("hdchain"), id), chain, true);
 }
 
 bool CWalletDB::LoadHDChain(CHDChain& chain)
 {
+    assert(false);
     return Read(std::string("hdchain"), chain);
 }
 
@@ -558,13 +561,16 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         }
         else if (strType == "hdchain")
         {
-            LogPrintf("%s:%d db_key %s\n", __func__, __LINE__, strType);
+            uint256 id;
+            ssKey >> id;
+
             CHDChain chain;
-            LogPrintf("%s:%d db_key %s\n", __func__, __LINE__, strType);
             ssValue >> chain;
-            LogPrintf("%s:%d db_key pwallet exists? %d %s\n", __func__, __LINE__, pwallet != nullptr, strType);
-            pwallet->SetHDChain(chain, true);
-            LogPrintf("%s:%d db_key %s\n", __func__, __LINE__, strType);
+            if (id != chain.GetId()) {
+                LogPrintf("checksum failed on hdchain with id %s\n", id.GetHex());
+            } else {
+                pwallet->SetHDChain(chain, true);
+            }
         } else if (strType == "bestblock") {
             CBlockLocator locator;
             ssValue >> locator;

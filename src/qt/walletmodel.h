@@ -127,6 +127,7 @@ public:
     std::set<uint256> GetSeedIds() const;
     std::map<std::string, std::pair<CKeyID, std::string>> GetAccountAddresses(const uint256& hashSeed, uint32_t nAccount);
     bool GenerateNewAddress(const uint32_t& nAccount, std::string& strAddress);
+    bool IsHdWallet() const;
 
 private:
     CWallet *wallet;

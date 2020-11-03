@@ -24,9 +24,12 @@ public:
 private slots:
 
 
+    void SeedSelectionChanged();
     void on_buttonNewAccount_clicked();
 
     void on_buttonNewAddress_clicked();
+
+    void on_buttonAddSeed_clicked();
 
 private:
     Ui::AddressesDialog *ui;
