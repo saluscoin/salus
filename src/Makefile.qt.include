@@ -11,32 +11,20 @@ QT_TS = \
   qt/locale/bitcoin_ca.ts \
   qt/locale/bitcoin_de.ts \
   qt/locale/bitcoin_en.ts \
-  qt/locale/bitcoin_en_US.ts \
   qt/locale/bitcoin_eo.ts \
   qt/locale/bitcoin_es.ts \
-  qt/locale/bitcoin_es_ES.ts \
   qt/locale/bitcoin_fi.ts \
-  qt/locale/bitcoin_fr_FR.ts \
-  qt/locale/bitcoin_hi_IN.ts \
   qt/locale/bitcoin_hr.ts \
-  qt/locale/bitcoin_hr_HR.ts \
   qt/locale/bitcoin_it.ts \
   qt/locale/bitcoin_ja.ts \
-  qt/locale/bitcoin_ko_KR.ts \
-  qt/locale/bitcoin_lt_LT.ts \
   qt/locale/bitcoin_nl.ts \
   qt/locale/bitcoin_pl.ts \
-  qt/locale/bitcoin_pt.ts \
-  qt/locale/bitcoin_pt_BR.ts \
-  qt/locale/bitcoin_ro_RO.ts \
   qt/locale/bitcoin_ru.ts \
   qt/locale/bitcoin_sk.ts \
   qt/locale/bitcoin_sv.ts \
   qt/locale/bitcoin_tr.ts \
   qt/locale/bitcoin_uk.ts \
-  qt/locale/bitcoin_vi.ts \
-  qt/locale/bitcoin_zh_CN.ts \
-  qt/locale/bitcoin_zh_TW.ts
+  qt/locale/bitcoin_vi.ts
 
 QT_FORMS_UI = \
   qt/addressesdialog.ui \
@@ -128,13 +116,11 @@ BITCOIN_QT_H = \
   qt/mnemonicdialog.h \
   qt/mnemonicdisplay.h \
   qt/monitoreddatamapper.h \
-  qt/networkstyle.h \
   qt/notificator.h \
   qt/optionsdialog.h \
   qt/optionsmodel.h \
   qt/overviewpage.h \
   qt/paymentserver.h \
-  qt/platformstyle.h \
   qt/qvalidatedlineedit.h \
   qt/qvaluecombobox.h \
   qt/rpcconsole.h \
@@ -245,7 +231,7 @@ RES_MOVIES = \
   qt/res/movies/update_spinner.mng \
   qt/res/movies/update_spinner_black.mng
 
-BITCOIN_RC = qt/res/bitcoin-qt-res.rc
+BITCOIN_RC = qt/res/bitcoin-qt.rc
 
 BITCOIN_QT_INCLUDES = -I$(builddir)/qt -I$(srcdir)/qt -I$(srcdir)/qt/forms \
   -I$(builddir)/qt/forms

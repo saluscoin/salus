@@ -34,9 +34,6 @@ LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOIN_CRYPTO_BASE=crypto/libbitcoin_crypto_base.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 
-if BUILD_BITCOIN_LIBS
-LIBBITCOINCONSENSUS=libbitcoinconsensus.la
-endif
 if ENABLE_WALLET
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
 endif
@@ -51,8 +48,6 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_WALLET)
-
-lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS)
 
 bin_PROGRAMS =
 noinst_PROGRAMS =
@@ -70,7 +65,6 @@ BITCOIN_CORE_H = \
   base58.h \
   chainparams.h \
   checkpoints.h \
-  checkqueue.h \
   clientversion.h \
   coincontrol.h \
   compat.h \
@@ -98,18 +92,13 @@ BITCOIN_CORE_H = \
   rpcclient.h \
   rpcprotocol.h \
   rpcserver.h \
-  scheduler.h \
   script.h \
   scrypt.h \
   serialize.h \
-  spork.h \
-  sporkdb.h \
-  streams.h \
   sync.h \
   threadsafety.h \
   timedata.h \
   tinyformat.h \
-  torcontrol.h \
   txdb.h \
   txdb-leveldb.h \
   txmempool.h \
@@ -213,10 +202,6 @@ libbitcoin_util_a_SOURCES = \
   util.cpp \
   $(BITCOIN_CORE_H)
 
-if GLIBC_BACK_COMPAT
-libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
-endif
-
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
@@ -240,28 +225,6 @@ salusd_LDADD = \
   $(LIBMEMENV)
 
 salusd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(SSL_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
-
-# bitcoinconsensus library #
-if BUILD_BITCOIN_LIBS
-include_HEADERS = script/bitcoinconsensus.h
-libbitcoinconsensus_la_SOURCES = $(crypto_libbitcoin_crypto_base_a_SOURCES) \
-  allocators.cpp \
-  hash.cpp \
-  pubkey.cpp \
-  script/script.cpp \
-  script/interpreter.cpp \
-  script/bitcoinconsensus.cpp \
-  uint256.cpp \
-  utilstrencodings.cpp
-
-if GLIBC_BACK_COMPAT
-  libbitcoinconsensus_la_SOURCES += compat/glibc_compat.cpp
-endif
-
-libbitcoinconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-libbitcoinconsensus_la_LIBADD = $(BOOST_LIBS)
-libbitcoinconsensus_la_CPPFLAGS = -I$(builddir)/obj -DBUILD_BITCOIN_INTERNAL
-endif
 
 CLEANFILES = $(EXTRA_LIBRARIES)
 CLEANFILES += leveldb/libleveldb.a leveldb/libmemenv.a

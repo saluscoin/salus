@@ -73,14 +73,12 @@ void AddressesDialog::PopulateSeedsView()
     for (const uint256& id : setSeedId) {
         QListWidgetItem* item = new QListWidgetItem(id.GetHex().c_str());
 
-        LogPrintf("current: %s seed selected %s\n", id.GetHex(), m_hashSeedSelected.GetHex());
         ui->listwidgetSeeds->addItem(item);
 
         if (id == m_hashSeedSelected) {
             ui->listwidgetSeeds->blockSignals(true);
             ui->listwidgetSeeds->setCurrentItem(item);
             ui->listwidgetSeeds->blockSignals(false);
-            LogPrintf("SetSelected\n");
         }
     }
 }
