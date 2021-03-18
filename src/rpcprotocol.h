@@ -103,7 +103,11 @@ public:
     }
     bool connect(const std::string& server, const std::string& port)
     {
+#if BOOST_VERSION < 107000
+        boost::asio::ip::tcp::resolver resolver(stream.get_io_service());
+#else
         boost::asio::ip::tcp::resolver resolver(stream.get_executor());
+#endif
         boost::asio::ip::tcp::resolver::query query(server.c_str(), port.c_str());
         boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
         boost::asio::ip::tcp::resolver::iterator end;

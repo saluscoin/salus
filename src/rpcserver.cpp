@@ -381,10 +381,14 @@ class AcceptedConnectionImpl : public AcceptedConnection
 {
 public:
     AcceptedConnectionImpl(
-            boost::asio::basic_socket_acceptor<boost::asio::ip::tcp>executor_type ex_type,
+#if BOOST_VERSION < 107000
+            asio::io_service& io_service,
+#else
+            boost::asio::basic_socket_acceptor<boost::asio::ip::tcp>executor_type io_service,
+#endif
             ssl::context &context,
             bool fUseSSL) :
-        sslStream(ex_type, context),
+        sslStream(io_service, context),
         _d(sslStream, fUseSSL),
         _stream(_d)
     {
@@ -432,7 +436,11 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketA
                    const bool fUseSSL)
 {
     // Accept connection
+#if BOOST_VERSION < 107000
+    AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL);
+#else
     AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_executor(), context, fUseSSL);
+#endif
 
     acceptor->async_accept(
             conn->sslStream.lowest_layer(),
@@ -538,7 +546,11 @@ void StartRPCThreads()
         else LogPrintf("ThreadRPCServer ERROR: missing server private key file %s\n", pathPKFile.string());
 
         string strCiphers = GetArg("-rpcsslciphers", "TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH");
+#if BOOST_VERSION < 107000
+        rpc_ssl_context = new ssl::context(*rpc_io_service, ssl::context::sslv23);
+#else
         SSL_CTX_set_cipher_list(rpc_ssl_context->native_handle(), strCiphers.c_str());
+#endif
     }
 
     // Try a dual IPv6/IPv4 socket, falling back to separate IPv4 and IPv6 sockets
