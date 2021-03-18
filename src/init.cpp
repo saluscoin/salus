@@ -12,6 +12,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #ifdef ENABLE_WALLET
+#include <mnemonic/mnemonicwalletinit.h>
 #include "wallet.h"
 #include "walletdb.h"
 #endif
@@ -719,35 +720,15 @@ bool AppInit2(boost::thread_group& threadGroup)
                 strErrors << _("Error loading wallet.dat") << "\n";
         }
 
-        if (GetBoolArg("-upgradewallet", fFirstRun))
-        {
-            int nMaxVersion = GetArg("-upgradewallet", 0);
-            if (nMaxVersion == 0) // the -upgradewallet without argument case
-            {
-                LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
-                nMaxVersion = CLIENT_VERSION;
-                pwalletMain->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
+        //If this is a new wallet, then create the seed words and import them.
+        MnemonicWalletInit walletInit;
+        bool fNewSeed = false;
+        if (fFirstRun) {
+            if (!walletInit.Open(fNewSeed)) {
+                strErrors << _("Failed to get a seed!") << "\n";
+                return InitError(strErrors.str());
             }
-            else
-                LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
-            if (nMaxVersion < pwalletMain->GetVersion())
-                strErrors << _("Cannot downgrade wallet") << "\n";
-            pwalletMain->SetMaxVersion(nMaxVersion);
-        }
-
-        if (fFirstRun)
-        {
-            // Create new keyUser and set as default key
-            RandAddSeedPerfmon();
-
-            CPubKey newDefaultKey;
-            if (pwalletMain->GetKeyFromPool(newDefaultKey)) {
-                pwalletMain->SetDefaultKey(newDefaultKey);
-                if (!pwalletMain->SetAddressBookName(pwalletMain->vchDefaultKey.GetID(), ""))
-                    strErrors << _("Cannot write default address") << "\n";
-            }
-
-            pwalletMain->SetBestChain(CBlockLocator(pindexBest));
+            fFirstRun = !fNewSeed;
         }
 
         LogPrintf("%s", strErrors.str());
@@ -777,6 +758,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             pwalletMain->SetBestChain(CBlockLocator(pindexBest));
             nWalletDBUpdated++;
         }
+        LogPrintf("%s:%d\n", __func__, __LINE__);
     } // (!fDisableWallet)
 #else // ENABLE_WALLET
     LogPrintf("No wallet compiled in!\n");

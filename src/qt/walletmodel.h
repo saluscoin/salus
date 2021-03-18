@@ -4,15 +4,14 @@
 #include <QObject>
 #include <vector>
 #include <map>
+#include <set>
 
-#include "allocators.h" /* for SecureString */
+#include <key.h>
 
 class OptionsModel;
 class AddressTableModel;
 class TransactionTableModel;
 class CWallet;
-class CKeyID;
-class CPubKey;
 class COutput;
 class COutPoint;
 class uint256;
@@ -124,6 +123,11 @@ public:
     void lockCoin(COutPoint& output);
     void unlockCoin(COutPoint& output);
     void listLockedCoins(std::vector<COutPoint>& vOutpts);
+    uint256 GetActiveSeedId() const;
+    std::set<uint256> GetSeedIds() const;
+    std::map<std::string, std::pair<CKeyID, std::string>> GetAccountAddresses(const uint256& hashSeed, uint32_t nAccount);
+    bool GenerateNewAddress(const uint32_t& nAccount, std::string& strAddress);
+    bool IsHdWallet() const;
 
 private:
     CWallet *wallet;

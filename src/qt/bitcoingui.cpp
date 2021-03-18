@@ -11,6 +11,7 @@
 
 #include "transactiontablemodel.h"
 #include "addressbookpage.h"
+#include "addressesdialog.h"
 #include "sendcoinsdialog.h"
 #include "signverifymessagedialog.h"
 #include "optionsdialog.h"
@@ -32,6 +33,8 @@
 #include "wallet.h"
 #include "init.h"
 #include "ui_interface.h"
+#include "mnemonicdialog.h"
+#include "mnemonicdisplay.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -128,6 +131,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     sendCoinsPage = new SendCoinsDialog(this);
 
+    addressesDialog = new AddressesDialog(this);
+
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
     centralStackedWidget = new QStackedWidget(this);
@@ -136,6 +141,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralStackedWidget->addWidget(addressBookPage);
     centralStackedWidget->addWidget(receiveCoinsPage);
     centralStackedWidget->addWidget(sendCoinsPage);
+    centralStackedWidget->addWidget(addressesDialog);
 
     QWidget *centralWidget = new QWidget();
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
@@ -256,6 +262,11 @@ void BitcoinGUI::createActions()
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
     tabGroup->addAction(sendCoinsAction);
 
+    addressesPageAction = new QAction(tr("&HD WALLET"), this);
+    addressesPageAction->setToolTip(tr("Manage wallet seeds, accounts, and addresses"));
+    addressesPageAction->setCheckable(true);
+    tabGroup->addAction(addressesPageAction);
+
     historyAction = new QAction(QIcon(fUseRedTheme ? ":/icons/red/history" : ":/icons/history"), tr("&TRANSACTIONS"), this);
     historyAction->setToolTip(tr("Browse transaction history"));
     historyAction->setCheckable(true);
@@ -274,6 +285,8 @@ void BitcoinGUI::createActions()
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
+    connect(addressesPageAction, &QAction::triggered, this, &BitcoinGUI::gotoAddressesPage);
+    //connect(addressesPageAction, &QAction::triggered, this, &BitcoinGUI::showNormalIfMinimized);
     connect(historyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -403,6 +416,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(overviewAction);
     toolbar->addAction(receiveCoinsAction);
     toolbar->addAction(sendCoinsAction);
+    toolbar->addAction(addressesPageAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
 
@@ -475,6 +489,7 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
         // Put transaction list in tabs
         transactionView->setModel(walletModel);
         overviewPage->setWalletModel(walletModel);
+        addressesDialog->SetWalletModel(walletModel);
         addressBookPage->setModel(walletModel->getAddressTableModel());
         receiveCoinsPage->setModel(walletModel->getAddressTableModel());
         sendCoinsPage->setModel(walletModel);
@@ -708,6 +723,82 @@ void BitcoinGUI::message(const QString &title, const QString &message, bool moda
         notificator->notify((Notificator::Class)nNotifyIcon, strTitle, message);
 }
 
+void BitcoinGUI::initWalletMenu(std::string& mnemonic, unsigned int& flag, bool& ret)
+{
+    switch(flag) {
+        //Note: Veil new GUI only responds to SELECT_LANGUAGE and does everything in that one signal
+        case MnemonicWalletInitFlags::SELECT_LANGUAGE:
+        {
+            std::cout << "mnemonic: " << mnemonic << std::endl;
+//            TutorialWidget *tutorial = new TutorialWidget();
+//            tutorial->exec();
+//
+//            while (tutorial->isVisible()) {
+//                MilliSleep(500);
+//            }
+//
+//            ret = !tutorial->ShutdownRequested();
+//            mnemonic = tutorial->GetMnemonic();
+//            flag = MnemonicWalletInitFlags::IMPORT_MNEMONIC;
+//            delete tutorial;
+
+            break;
+        }
+        case MnemonicWalletInitFlags::PROMPT_MNEMONIC:
+        {
+            MnemonicDialog *mDiag = new MnemonicDialog();
+            mDiag->exec();
+
+            while (mDiag->isVisible()) {
+                MilliSleep(500);
+            }
+
+            ret = !mDiag->ShutdownRequested();
+            flag = mDiag->GetSelection();
+            delete mDiag;
+            break;
+        }
+        case MnemonicWalletInitFlags::NEW_MNEMONIC:
+        {
+            MnemonicDisplay *mDisp = new MnemonicDisplay(QString::fromStdString(mnemonic));
+            mDisp->exec();
+
+            while (mDisp->isVisible())
+                MilliSleep(500);
+
+            ret = !mDisp->ShutdownRequested();
+            delete mDisp;
+            break;
+        }
+        case MnemonicWalletInitFlags::IMPORT_MNEMONIC:
+        {
+            MnemonicDisplay *mDisp = new MnemonicDisplay();
+            mDisp->exec();
+
+            while (mDisp->isVisible())
+                MilliSleep(500);
+
+            ret = !mDisp->ShutdownRequested();
+            mnemonic = mDisp->GetImportSeed().toStdString();
+            delete mDisp;
+            break;
+        }
+        case MnemonicWalletInitFlags::INVALID_MNEMONIC:
+        {
+            bool fRetry = true;
+            MnemonicDisplay *mDisp = new MnemonicDisplay(fRetry);
+            mDisp->exec();
+
+            while (mDisp->isVisible())
+                MilliSleep(500);
+
+            ret = !mDisp->ShutdownRequested();
+            mnemonic = mDisp->GetImportSeed().toStdString();
+            delete mDisp;
+        }
+    }
+}
+
 void BitcoinGUI::changeEvent(QEvent *e)
 {
     QMainWindow::changeEvent(e);
@@ -834,6 +925,16 @@ void BitcoinGUI::gotoSendCoinsPage()
 {
     sendCoinsAction->setChecked(true);
     centralStackedWidget->setCurrentWidget(sendCoinsPage);
+
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+void BitcoinGUI::gotoAddressesPage()
+{
+    addressesPageAction->setChecked(true);
+    centralStackedWidget->setCurrentWidget(addressesDialog);
+    addressesDialog->ResetSelections();
 
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);

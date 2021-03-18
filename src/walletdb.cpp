@@ -95,6 +95,20 @@ bool CWalletDB::WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey)
     return Write(std::make_pair(std::string("mkey"), nID), kMasterKey, true);
 }
 
+bool CWalletDB::WriteHDChain(const CHDChain& chain)
+{
+    nWalletDBUpdated++;
+    uint256 id = chain.GetId();
+    LogPrintf("%s:%d writing chain id %s\n", __func__, __LINE__, id.GetHex());
+    return Write(std::make_pair(std::string("hdchain"), id), chain, true);
+}
+
+bool CWalletDB::LoadHDChain(CHDChain& chain)
+{
+    assert(false);
+    return Read(std::string("hdchain"), chain);
+}
+
 bool CWalletDB::WriteCScript(const uint160& hash, const CScript& redeemScript)
 {
     nWalletDBUpdated++;
@@ -545,8 +559,29 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         {
             ssValue >> pwallet->nOrderPosNext;
         }
+        else if (strType == "hdchain")
+        {
+            uint256 id;
+            ssKey >> id;
+
+            CHDChain chain;
+            ssValue >> chain;
+            if (id != chain.GetId()) {
+                LogPrintf("checksum failed on hdchain with id %s\n", id.GetHex());
+            } else {
+                pwallet->SetHDChain(chain, true);
+            }
+        } else if (strType == "bestblock") {
+            CBlockLocator locator;
+            ssValue >> locator;
+           // pwallet->SetBestChain(locator);
+        }
+        else {
+            LogPrintf("%s:%d Failed to load db_key %s\n", __func__, __LINE__, strType);
+        }
     } catch (...)
     {
+        LogPrintf("%s:%d Failed to loading db, caught error on type %s\n", __func__, __LINE__, strType);
         return false;
     }
     return true;
@@ -846,4 +881,9 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
 bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename)
 {
     return CWalletDB::Recover(dbenv, filename, false);
+}
+
+uint256 CHDChain::GetId() const
+{
+    return Hash(seed_id.begin(), seed_id.end(), seed_id_r.begin(), seed_id_r.end());
 }

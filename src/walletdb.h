@@ -35,12 +35,56 @@ enum DBErrors
     DB_NEED_REWRITE
 };
 
+/* simple HD chain data model */
+class CHDChain
+{
+public:
+    uint32_t nExternalChainCounter;
+    uint32_t nInternalChainCounter;
+    CKeyID seed_id; //!< seed hash160
+    CKeyID seed_id_r; //!< seed hash160 if the wallet uses 512bit seed saved to two keys
+
+    static const int VERSION_HD_BASE        = 1;
+    static const int VERSION_HD_CHAIN_SPLIT = 2;
+    static const int CURRENT_VERSION        = VERSION_HD_CHAIN_SPLIT;
+    int nVersion;
+
+    CHDChain() { SetNull(); }
+
+    IMPLEMENT_SERIALIZE
+    (
+        READWRITE(this->nVersion);
+        READWRITE(nExternalChainCounter);
+        READWRITE(seed_id);
+        READWRITE(seed_id_r);
+        if (this->nVersion >= VERSION_HD_CHAIN_SPLIT)
+            READWRITE(nInternalChainCounter);
+    )
+
+    void SetNull()
+    {
+        nVersion = CHDChain::CURRENT_VERSION;
+        nExternalChainCounter = 0;
+        nInternalChainCounter = 0;
+        seed_id.SetNull();
+        seed_id_r.SetNull();
+    }
+
+    bool Is512BitSeed() const { return !seed_id_r.IsNull(); }
+
+    uint256 GetId() const;
+};
+
 class CKeyMetadata
 {
 public:
-    static const int CURRENT_VERSION=1;
+    static const int CURRENT_VERSION=2;
     int nVersion;
     int64_t nCreateTime; // 0 means unknown
+    std::string hdKeypath; //optional HD/bip32 keypath
+    CKeyID hd_seed_id; //id of the HD seed used to derive this key
+    CKeyID hd_seed_id_r; //if the key is derived using 512 bit seed, two keys are needed
+    uint32_t nAccount; //Account that the Key belongs to
 
     CKeyMetadata()
     {
@@ -57,12 +101,22 @@ public:
         READWRITE(this->nVersion);
         nVersion = this->nVersion;
         READWRITE(nCreateTime);
+        if (nVersion > 1) {
+            READWRITE(hdKeypath);
+            READWRITE(hd_seed_id);
+            READWRITE(hd_seed_id_r);
+            READWRITE(nAccount);
+        }
     )
 
     void SetNull()
     {
         nVersion = CKeyMetadata::CURRENT_VERSION;
         nCreateTime = 0;
+        hdKeypath.clear();
+        hd_seed_id.SetNull();
+        hd_seed_id_r.SetNull();
+        nAccount = 0;
     }
 };
 
@@ -88,6 +142,8 @@ public:
     bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata &keyMeta);
     bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, const CKeyMetadata &keyMeta);
     bool WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey);
+    bool WriteHDChain(const CHDChain& chain);
+    bool LoadHDChain(CHDChain& chain);
 
     bool WriteCScript(const uint160& hash, const CScript& redeemScript);
 
