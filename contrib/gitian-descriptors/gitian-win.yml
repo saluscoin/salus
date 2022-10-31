@@ -2,7 +2,7 @@
 name: "salus-win-1.0.0.1"
 enable_cache: true
 suites:
-- "precise"
+- "bionic"
 architectures:
 - "amd64"
 packages:
