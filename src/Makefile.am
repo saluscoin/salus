@@ -64,6 +64,7 @@ BITCOIN_CORE_H = \
   alert.h \
   allocators.h \
   base58.h \
+  bignum.h \
   chainparams.h \
   checkpoints.h \
   clientversion.h \
