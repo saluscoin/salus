@@ -66,6 +66,7 @@ BITCOIN_CORE_H = \
   base58.h \
   bignum.h \
   chainparams.h \
+  chainparamsseeds.h \
   checkpoints.h \
   clientversion.h \
   coincontrol.h \
