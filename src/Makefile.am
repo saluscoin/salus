@@ -137,6 +137,7 @@ crypto_libbitcoin_crypto_base_a_SOURCES = \
   crypto/hmac_sha256.c \
   crypto/hmac_sha256.h \
   crypto/hmac_sha512.c \
+  crypto/hmac_sha512.h \
   crypto/pkcs5_pbkdf2.c \
   crypto/pkcs5_pbkdf2.h \
   crypto/sha256.c \
