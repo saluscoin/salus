@@ -10,7 +10,6 @@ export PYTHONPATH
 
 BITCOIND_BIN=$(top_builddir)/src/$(BITCOIN_DAEMON_NAME)$(EXEEXT)
 BITCOIN_QT_BIN=$(top_builddir)/src/qt/$(BITCOIN_GUI_NAME)$(EXEEXT)
-BITCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EXEEXT)
 
 empty :=
 space := $(empty) $(empty)
@@ -56,14 +55,6 @@ distcheck-hook:
 
 distcleancheck:
 	@:
-
-$(BITCOIN_WIN_INSTALLER): all-recursive
-	$(MKDIR_P) $(top_builddir)/release
-	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIND_BIN) $(top_builddir)/release
-	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_QT_BIN) $(top_builddir)/release
-	@test -f $(MAKENSIS) && $(MAKENSIS) -V2 $(top_builddir)/share/setup.nsi || \
-	  echo error: could not build $@
-	@echo built $@
 
 $(OSX_APP)/Contents/PkgInfo:
 	$(MKDIR_P) $(@D)
@@ -141,9 +132,6 @@ if TARGET_DARWIN
 appbundle: $(OSX_APP_BUILT)
 deploy: $(OSX_DMG)
 endif
-if TARGET_WINDOWS
-deploy: $(BITCOIN_WIN_INSTALLER)
-endif
 
 $(BITCOIN_QT_BIN): FORCE
 	$(MAKE) -C src qt/$(@F)
@@ -151,8 +139,6 @@ $(BITCOIN_QT_BIN): FORCE
 $(BITCOIND_BIN): FORCE
 	$(MAKE) -C src $(@F)
 
-$(BITCOIN_CLI_BIN): FORCE
-	$(MAKE) -C src $(@F)
 
 if USE_LCOV
 
@@ -212,7 +198,7 @@ dist_noinst_SCRIPTS = autogen.sh
 
 EXTRA_DIST = $(top_srcdir)/share/genbuild.sh $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING)
 
-CLEANFILES = $(OSX_DMG) $(BITCOIN_WIN_INSTALLER)
+CLEANFILES = $(OSX_DMG)
 
 .INTERMEDIATE: $(COVERAGE_INFO)
 
