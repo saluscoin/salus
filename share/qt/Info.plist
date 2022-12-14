@@ -17,22 +17,22 @@
   <string>APPL</string>
 
   <key>CFBundleGetInfoString</key>
-  <string>3.1.99, Copyright © 2009-2018 The Bitcoin Core developers, 2014-2018 The Dash Core developers, 2015-2018 The PIVX Core developers</string>
+  <string>1.1.5, Copyright © 2009-2021 The Bitcoin Core developers, 2014-2021 The Dash Core developers, 2015-2021 The PIVX Core developers, 2015-2021 The SaluS developers</string>
 
   <key>CFBundleShortVersionString</key>
-  <string>3.1.99</string>
+  <string>1.1.5</string>
 
   <key>CFBundleVersion</key>
-  <string>3.1.99</string>
+  <string>1.1.5</string>
 
   <key>CFBundleSignature</key>
   <string>????</string>
 
   <key>CFBundleExecutable</key>
-  <string>PIVX-Qt</string>
+  <string>SaluS-Qt</string>
   
   <key>CFBundleName</key>
-  <string>PIVX-Qt</string>
+  <string>SaluS-Qt</string>
 
   <key>LSHasLocalizedDisplayName</key>
   <true/>

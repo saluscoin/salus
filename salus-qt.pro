@@ -151,6 +151,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/aboutdialog.h \
     src/qt/editaddressdialog.h \
     src/qt/bitcoinaddressvalidator.h \
+    src/qt/mnemonicdialog.h \
+    src/qt/mnemonicdisplay.h \
     src/alert.h \
     src/addrman.h \
     src/base58.h \
@@ -243,6 +245,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/bitcoinaddressvalidator.cpp \
     src/alert.cpp \
     src/chainparams.cpp \
+    src/clientversion.cpp \
     src/version.cpp \
     src/sync.cpp \
     src/txmempool.cpp \
@@ -304,7 +307,19 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/scrypt-x86.S \
     src/scrypt-x86_64.S \
     src/scrypt.cpp \
-    src/pbkdf2.cpp
+    src/mnemonic/generateseed.cpp \
+    src/mnemonic/dictionary.cpp \
+    src/mnemonic/mnemonic.cpp \
+    src/mnemonic/mnemonicwalletinit.cpp \
+    src/qt/mnemonicdialog.cpp \
+    src/qt/mnemonicdisplay.cpp \
+    src/pbkdf2.cpp \
+    src/crypto/hmac_sha256.c \
+    src/crypto/hmac_sha512.c \
+    src/crypto/pkcs5_pbkdf2.c \
+    src/crypto/sha256.c \
+    src/crypto/sha512.c \
+    src/crypto/zeroize.c
 
 RESOURCES += \
     src/qt/bitcoin.qrc
@@ -322,7 +337,9 @@ FORMS += \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui \
     src/qt/forms/optionsdialog.ui \
-    src/qt/addressesdialog.ui
+    src/qt/addressesdialog.ui \
+    src/qt/forms/mnemonicdialog.ui \
+    src/qt/forms/mnemonicdisplay.ui
 
 contains(USE_QRCODE, 1) {
 HEADERS += src/qt/qrcodedialog.h
