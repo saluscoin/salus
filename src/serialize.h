@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <ios>
 #include <map>
 #include <set>
 #include <cassert>
@@ -19,7 +20,8 @@
 #include <boost/type_traits/is_fundamental.hpp>
 #include <boost/tuple/tuple.hpp>
 
-#include "allocators.h"
+#include <support/allocators/secure.h>
+#include <support/allocators/zeroafterfree.h>
 #include "version.h"
 
 class CAutoFile;
@@ -833,6 +835,7 @@ public:
  * >> and << read and write unformatted data using the above serialization templates.
  * Fills with data in linear time; some stringstream implementations take N^2 time.
  */
+
 class CDataStream
 {
 protected:
@@ -1121,9 +1124,6 @@ public:
         clear();
     }
 };
-
-
-
 
 
 

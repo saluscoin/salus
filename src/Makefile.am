@@ -62,7 +62,6 @@ endif
 BITCOIN_CORE_H = \
   addrman.h \
   alert.h \
-  allocators.h \
   base58.h \
   bignum.h \
   chainparams.h \
@@ -98,6 +97,11 @@ BITCOIN_CORE_H = \
   script.h \
   scrypt.h \
   serialize.h \
+  support/allocators/secure.h \
+  support/allocators/zeroafterfree.h \
+  support/cleanse.h \
+  support/events.h \
+  support/lockedpool.h \
   sync.h \
   threadsafety.h \
   timedata.h \
@@ -133,6 +137,8 @@ libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 crypto_libbitcoin_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS)
 crypto_libbitcoin_crypto_base_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 crypto_libbitcoin_crypto_base_a_SOURCES = \
+  crypto/aes.cpp \
+  crypto/aes.h \
   crypto/common.h \
   crypto/hmac_sha256.c \
   crypto/hmac_sha256.h \
@@ -212,8 +218,10 @@ libbitcoin_common_a_SOURCES = \
 libbitcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_util_a_SOURCES = \
+  support/lockedpool.cpp \
   clientversion.cpp \
   rpcprotocol.cpp \
+  support/cleanse.cpp \
   sync.cpp \
   util.cpp \
   $(BITCOIN_CORE_H)
@@ -247,6 +255,7 @@ CLEANFILES += leveldb/libleveldb.a leveldb/libmemenv.a
 CLEANFILES += *.gcda *.gcno
 CLEANFILES += compat/*.gcda compat/*.gcno
 CLEANFILES += script/*.gcda script/*.gcno
+CLEANFILES += support/*.gcda support/*.gcno
 CLEANFILES += obj/build.h
 
 
