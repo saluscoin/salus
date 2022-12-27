@@ -191,6 +191,11 @@ HEADERS += src/qt/bitcoingui.h \
     src/json/json_spirit_reader.h \
     src/json/json_spirit_error_position.h \
     src/json/json_spirit.h \
+    src/support/allocators/secure.h \
+    src/support/allocators/zeroafterfree.h \
+    src/support/cleanse.h \
+    src/support/events.h \
+    src/support/lockedpool.h \
     src/qt/clientmodel.h \
     src/qt/guiutil.h \
     src/qt/transactionrecord.h \
@@ -229,6 +234,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/clientversion.h \
     src/threadsafety.h \
     src/tinyformat.h \
+    src/crypto/aes.h \
     src/qt/addressesdialog.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
@@ -246,6 +252,8 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/alert.cpp \
     src/chainparams.cpp \
     src/clientversion.cpp \
+    src/support/lockedpool.cpp \
+    src/support/cleanse.cpp \
     src/version.cpp \
     src/sync.cpp \
     src/txmempool.cpp \
@@ -314,6 +322,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/mnemonicdialog.cpp \
     src/qt/mnemonicdisplay.cpp \
     src/pbkdf2.cpp \
+    src/crypto/aes.cpp \
     src/crypto/hmac_sha256.c \
     src/crypto/hmac_sha512.c \
     src/crypto/pkcs5_pbkdf2.c \

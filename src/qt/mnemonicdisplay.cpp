@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "mnemonicdisplay.h"
-#include "forms/ui_mnemonicdisplay.h"
+#include "ui_mnemonicdisplay.h"
 
 #include <sstream>
 #include <boost/algorithm/string/join.hpp>

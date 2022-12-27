@@ -4,7 +4,7 @@
 
 #include <mnemonic/walletinitflags.h>
 #include "mnemonicdialog.h"
-#include "forms/ui_mnemonicdialog.h"
+#include "ui_mnemonicdialog.h"
 
 MnemonicDialog::MnemonicDialog(QWidget *parent) : QDialog(parent), ui(new Ui::MnemonicDialog)
 {
