@@ -47,7 +47,7 @@ bool MnemonicWalletInit::Open(bool& fNewSeed)
         // Prompt the user to either enter a seed phrase, or generate a new one
         unsigned int ret = 0;
         if (!InitNewWalletPrompt(ret))
-            return error("%s: failed to get wallet mnemonic languag");
+            return error("%s: failed to get wallet mnemonic language", __func__);
         initOption = static_cast<MnemonicWalletInitFlags>(ret);
     }
 
@@ -73,9 +73,7 @@ bool MnemonicWalletInit::Open(bool& fNewSeed)
         // Convert the BIP39 mnemonic phrase into the final 512bit wallet seed
         auto hashRet = decode_mnemonic(strSeedPhraseArg);
         memcpy(m_seed.begin(), hashRet.begin(), hashRet.size());
-        LogPrintf("%s: Staging for loading seed %s\n", __func__, m_seed.GetHex());
     }
-    LogPrintf("%s: seed %s\n", __func__, m_seed.GetHex());
 
     if (fNewSeed) {
         // Create new keyUser and set as default key
