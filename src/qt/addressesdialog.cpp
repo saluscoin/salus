@@ -12,6 +12,9 @@ AddressesDialog::AddressesDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->listwidgetSeeds, &QListWidget::itemSelectionChanged, this, &AddressesDialog::SeedSelectionChanged);
+
+    //Keep the new account button hidden because the logic is not yet coded to switch accounts
+    ui->buttonNewAccount->hide();
 }
 
 AddressesDialog::~AddressesDialog()
