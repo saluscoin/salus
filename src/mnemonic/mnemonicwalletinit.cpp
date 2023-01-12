@@ -42,13 +42,6 @@ bool MnemonicWalletInit::Open(bool& fNewSeed)
     std::string strSeedPhraseArg = GetArg("-importseed", "");
     if (!strSeedPhraseArg.empty()) {
         initOption = MnemonicWalletInitFlags::IMPORT_MNEMONIC;
-        //validate the mnemonic
-        std::vector<std::string> words;
-        std::istringstream iss(strSeedPhraseArg);
-        std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(words));
-        if (!validate_mnemonic(words)) {
-            return error("%s: seed phrase is not valid!", __func__);
-        }
     }
 
     /**If no startup args, then launch prompt asking to import a seed or generate new **/
@@ -83,6 +76,14 @@ bool MnemonicWalletInit::Open(bool& fNewSeed)
         if (strSeedPhraseArg.empty()) {
             LogPrintf("Cannot import an empty seed phrase!\n");
             return false;
+        }
+
+        //validate the mnemonic
+        std::vector<std::string> words;
+        std::istringstream iss(strSeedPhraseArg);
+        std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(words));
+        if (!validate_mnemonic(words)) {
+            return error("%s: seed phrase is not valid!", __func__);
         }
 
         // Convert the BIP39 mnemonic phrase into the final 512bit wallet seed
