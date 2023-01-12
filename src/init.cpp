@@ -728,7 +728,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         bool fNewSeed = false;
         if (fFirstRun) {
             if (!walletInit.Open(fNewSeed)) {
-                strErrors << _("Failed to get a seed!") << "\n";
+                strErrors << _("Failed to get a seed! Check debug.log") << "\n";
                 return InitError(strErrors.str());
             }
             fFirstRun = !fNewSeed;
