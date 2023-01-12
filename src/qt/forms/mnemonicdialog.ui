@@ -47,7 +47,7 @@
    <item>
     <widget class="QLabel" name="lblExplanation">
      <property name="text">
-      <string>Your Veil wallet will be generated with a mnemonic seed. In the event that you lose your wallet, this seed will allow you to regenerate it and regain access to your funds. It is important that you keep your seed somewhere safe and private.</string>
+      <string>Your SaluS wallet will be generated with a mnemonic seed. In the event that you lose your wallet, this seed will allow you to regenerate it and regain access to your funds. It is important that you keep your seed somewhere safe and private.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
