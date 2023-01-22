@@ -78,6 +78,8 @@ public:
         assert(hashGenesisBlock == uint256("0x000003f07d368792f736f3098ad7201bb821883fbb66b27a8ee65be273847e02"));
         assert(genesis.hashMerkleRoot == uint256("0x169309cb25cd5c63a0cd5e02540d2ac613153a33694c6ee665ad0b598408bd1b"));
 
+        vSeeds.push_back(CDNSSeedData("95.216.23.211", "95.216.23.211"));
+        vSeeds.push_back(CDNSSeedData("salus-coin.com", "salus-coin.com"));
         vSeeds.push_back(CDNSSeedData("198.50.243.69", "198.50.243.69"));
         vSeeds.push_back(CDNSSeedData("208.110.70.10", "208.110.70.10"));
         vSeeds.push_back(CDNSSeedData("104.167.2.136", "104.167.2.136"));

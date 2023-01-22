@@ -99,7 +99,6 @@ bool CWalletDB::WriteHDChain(const CHDChain& chain)
 {
     nWalletDBUpdated++;
     uint256 id = chain.GetId();
-    LogPrintf("%s:%d writing chain id %s\n", __func__, __LINE__, id.GetHex());
     return Write(std::make_pair(std::string("hdchain"), id), chain, true);
 }
 

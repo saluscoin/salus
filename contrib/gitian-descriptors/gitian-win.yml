@@ -2,7 +2,7 @@
 name: "salus-win-1.0.0.1"
 enable_cache: true
 suites:
-- "precise"
+- "bionic"
 architectures:
 - "amd64"
 packages:
@@ -100,9 +100,7 @@ script: |
     make ${MAKEOPTS}
     make deploy
     make install-strip
-    cp -f salus-*setup*.exe $OUTDIR/
     cd installed
-    mv ${DISTNAME}/bin/*.dll ${DISTNAME}/lib/
     find . -name "lib*.la" -delete
     find . -name "lib*.a" -delete
     rm -rf ${DISTNAME}/lib/pkgconfig

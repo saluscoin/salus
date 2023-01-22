@@ -63,7 +63,9 @@ BITCOIN_CORE_H = \
   addrman.h \
   alert.h \
   base58.h \
+  bignum.h \
   chainparams.h \
+  chainparamsseeds.h \
   checkpoints.h \
   clientversion.h \
   coincontrol.h \
@@ -95,6 +97,11 @@ BITCOIN_CORE_H = \
   script.h \
   scrypt.h \
   serialize.h \
+  support/allocators/secure.h \
+  support/allocators/zeroafterfree.h \
+  support/cleanse.h \
+  support/events.h \
+  support/lockedpool.h \
   sync.h \
   threadsafety.h \
   timedata.h \
@@ -109,6 +116,17 @@ BITCOIN_CORE_H = \
   wallet.h \
   walletdb.h
 
+JSON_H = \
+  json/json_spirit.h \
+  json/json_spirit_error_position.h \
+  json/json_spirit_reader.h \
+  json/json_spirit_reader_template.h \
+  json/json_spirit_stream_reader.h \
+  json/json_spirit_utils.h \
+  json/json_spirit_value.h \
+  json/json_spirit_writer.h \
+  json/json_spirit_writer_template.h
+
 obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
 	@$(top_srcdir)/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
@@ -119,10 +137,13 @@ libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 crypto_libbitcoin_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS)
 crypto_libbitcoin_crypto_base_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 crypto_libbitcoin_crypto_base_a_SOURCES = \
+  crypto/aes.cpp \
+  crypto/aes.h \
   crypto/common.h \
   crypto/hmac_sha256.c \
   crypto/hmac_sha256.h \
   crypto/hmac_sha512.c \
+  crypto/hmac_sha512.h \
   crypto/pkcs5_pbkdf2.c \
   crypto/pkcs5_pbkdf2.h \
   crypto/sha256.c \
@@ -154,6 +175,7 @@ libbitcoin_server_a_SOURCES = \
   rpcserver.cpp \
   timedata.cpp \
   txmempool.cpp \
+  $(JSON_H) \
   $(BITCOIN_CORE_H)
 
 # wallet: shared between salusd and salus-qt, but only linked
@@ -196,8 +218,10 @@ libbitcoin_common_a_SOURCES = \
 libbitcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_util_a_SOURCES = \
+  support/lockedpool.cpp \
   clientversion.cpp \
   rpcprotocol.cpp \
+  support/cleanse.cpp \
   sync.cpp \
   util.cpp \
   $(BITCOIN_CORE_H)
@@ -224,13 +248,14 @@ salusd_LDADD = \
   $(LIBLEVELDB) \
   $(LIBMEMENV)
 
-salusd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(SSL_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
+salusd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 
 CLEANFILES = $(EXTRA_LIBRARIES)
 CLEANFILES += leveldb/libleveldb.a leveldb/libmemenv.a
 CLEANFILES += *.gcda *.gcno
 CLEANFILES += compat/*.gcda compat/*.gcno
 CLEANFILES += script/*.gcda script/*.gcno
+CLEANFILES += support/*.gcda support/*.gcno
 CLEANFILES += obj/build.h
 
 

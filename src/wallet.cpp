@@ -124,7 +124,7 @@ void CWallet::DeriveNewChildKey(CKeyMetadata& metadata, CKey& secret, uint32_t n
     } while (HaveKey(childKey.key.GetPubKey().GetID()));
 
     secret = childKey.key;
-    LogPrintf("Final Key %s=%s\n", metadata.hdKeypath, HexStr(secret.GetPubKey()));
+    //LogPrintf("Final Key %s=%s\n", metadata.hdKeypath, HexStr(secret.GetPubKey()));
     metadata.hd_seed_id = ActiveHDChain()->seed_id;
     metadata.hd_seed_id_r = ActiveHDChain()->seed_id_r;
     metadata.nAccount = nAccount;
@@ -146,7 +146,7 @@ bool CWallet::IsHDEnabled()
 void CWallet::SetHDSeed_512(const uint512& hashSeed)
 {
     LOCK(cs_wallet);
-    LogPrintf("%s:%d Setting seed to %s\n", __func__, __LINE__, HexStr(hashSeed.begin(), hashSeed.end()));
+    //LogPrintf("%s:%d Setting seed to %s\n", __func__, __LINE__, HexStr(hashSeed.begin(), hashSeed.end()));
     CHDChain newHdChain;
     newHdChain.nVersion = CHDChain::VERSION_HD_CHAIN_SPLIT;
 
@@ -172,7 +172,7 @@ void CWallet::SetHDSeed_512(const uint512& hashSeed)
     }
 
     m_mapHdChains[newHdChain.GetId()] = newHdChain;
-    LogPrintf("%s:%d adding seed hash %s to maphdchains\n", __func__, __LINE__, newHdChain.GetId().GetHex());
+    //LogPrintf("%s:%d adding seed hash %s to maphdchains\n", __func__, __LINE__, newHdChain.GetId().GetHex());
 
     SetHDChain(newHdChain, false);
 }
@@ -180,15 +180,11 @@ void CWallet::SetHDSeed_512(const uint512& hashSeed)
 void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
 {
     LOCK(cs_wallet);
-    LogPrintf("%s:%d\n", __func__, __LINE__);
     if (!memonly && !CWalletDB(strWalletFile).WriteHDChain(chain))
         throw std::runtime_error(std::string(__func__) + ": writing chain failed");
 
-    LogPrintf("%s:%d\n", __func__, __LINE__);
     uint256 hashChain = chain.GetId();
     m_mapHdChains[hashChain] = chain;
-    LogPrintf("%s:%d to hash %s\n", __func__, __LINE__, hashChain.GetHex());
-
     m_hashActiveHdChain = hashChain;
 }
 

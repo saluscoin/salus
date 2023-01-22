@@ -4,6 +4,8 @@
 
 #include "crypter.h"
 
+#include <crypto/aes.h>
+
 #include "script.h"
 #include "scrypt.h"
 
@@ -25,7 +27,7 @@ bool CCrypter::SetKeyFromPassphrase(const SecureString& strKeyData, const std::v
     if (nDerivationMethod == 0)
     {
         i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha512(), &chSalt[0],
-                          (unsigned char *)&strKeyData[0], strKeyData.size(), nRounds, chKey, chIV);
+                          (unsigned char *)&strKeyData[0], strKeyData.size(), nRounds, vchKey.data(), vchIV.data());
     }
 
     if (nDerivationMethod == 1)
@@ -34,15 +36,15 @@ bool CCrypter::SetKeyFromPassphrase(const SecureString& strKeyData, const std::v
         uint256 scryptHash = scrypt_salted_multiround_hash((const void*)strKeyData.c_str(), strKeyData.size(), &chSalt[0], 8, nRounds);
 
         i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha512(), &chSalt[0],
-                          (unsigned char *)&scryptHash, sizeof scryptHash, nRounds, chKey, chIV);
+                          (unsigned char *)&scryptHash, sizeof scryptHash, nRounds, vchKey.data(), vchIV.data());
         OPENSSL_cleanse(&scryptHash, sizeof scryptHash);
     }
 
 
     if (i != (int)WALLET_CRYPTO_KEY_SIZE)
     {
-        OPENSSL_cleanse(chKey, sizeof(chKey));
-        OPENSSL_cleanse(chIV, sizeof(chIV));
+        OPENSSL_cleanse(vchKey.data(), vchKey.size());
+        OPENSSL_cleanse(vchIV.data(), vchIV.size());
         return false;
     }
 
@@ -55,8 +57,8 @@ bool CCrypter::SetKey(const CKeyingMaterial& chNewKey, const std::vector<unsigne
     if (chNewKey.size() != WALLET_CRYPTO_KEY_SIZE || chNewIV.size() != WALLET_CRYPTO_KEY_SIZE)
         return false;
 
-    memcpy(&chKey[0], &chNewKey[0], sizeof chKey);
-    memcpy(&chIV[0], &chNewIV[0], sizeof chIV);
+    memcpy(vchKey.data(), &chNewKey[0], vchKey.size());
+    memcpy(vchIV.data(), &chNewIV[0], vchIV.size());
 
     fKeySet = true;
     return true;
@@ -68,24 +70,15 @@ bool CCrypter::Encrypt(const CKeyingMaterial& vchPlaintext, std::vector<unsigned
         return false;
 
     // max ciphertext len for a n bytes of plaintext is
-    // n + AES_BLOCK_SIZE - 1 bytes
-    int nLen = vchPlaintext.size();
-    int nCLen = nLen + AES_BLOCK_SIZE, nFLen = 0;
-    vchCiphertext = std::vector<unsigned char> (nCLen);
+    // n + AES_BLOCKSIZE bytes
+    vchCiphertext.resize(vchPlaintext.size() + AES_BLOCKSIZE);
 
-    EVP_CIPHER_CTX* ctx = nullptr;
+    AES256CBCEncrypt enc(vchKey.data(), vchIV.data(), true);
+    size_t nLen = enc.Encrypt(&vchPlaintext[0], vchPlaintext.size(), vchCiphertext.data());
+    if(nLen < vchPlaintext.size())
+        return false;
+    vchCiphertext.resize(nLen);
 
-    bool fOk = true;
-
-    EVP_CIPHER_CTX_init(ctx);
-    if (fOk) fOk = EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, chKey, chIV);
-    if (fOk) fOk = EVP_EncryptUpdate(ctx, &vchCiphertext[0], &nCLen, &vchPlaintext[0], nLen);
-    if (fOk) fOk = EVP_EncryptFinal_ex(ctx, (&vchCiphertext[0])+nCLen, &nFLen);
-    EVP_CIPHER_CTX_cleanup(ctx);
-
-    if (!fOk) return false;
-
-    vchCiphertext.resize(nCLen + nFLen);
     return true;
 }
 
@@ -96,26 +89,16 @@ bool CCrypter::Decrypt(const std::vector<unsigned char>& vchCiphertext, CKeyingM
 
     // plaintext will always be equal to or lesser than length of ciphertext
     int nLen = vchCiphertext.size();
-    int nPLen = nLen, nFLen = 0;
 
-    vchPlaintext = CKeyingMaterial(nPLen);
+    vchPlaintext.resize(nLen);
 
-    EVP_CIPHER_CTX* ctx = nullptr;
-
-    bool fOk = true;
-
-    EVP_CIPHER_CTX_init(ctx);
-    if (fOk) fOk = EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, chKey, chIV);
-    if (fOk) fOk = EVP_DecryptUpdate(ctx, &vchPlaintext[0], &nPLen, &vchCiphertext[0], nLen);
-    if (fOk) fOk = EVP_DecryptFinal_ex(ctx, (&vchPlaintext[0])+nPLen, &nFLen);
-    EVP_CIPHER_CTX_cleanup(ctx);
-
-    if (!fOk) return false;
-
-    vchPlaintext.resize(nPLen + nFLen);
+    AES256CBCDecrypt dec(vchKey.data(), vchIV.data(), true);
+    nLen = dec.Decrypt(vchCiphertext.data(), vchCiphertext.size(), &vchPlaintext[0]);
+    if(nLen == 0)
+        return false;
+    vchPlaintext.resize(nLen);
     return true;
 }
-
 
 bool EncryptSecret(const CKeyingMaterial& vMasterKey, const CKeyingMaterial &vchPlaintext, const uint256& nIV, std::vector<unsigned char> &vchCiphertext)
 {

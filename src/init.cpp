@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2019 Veil developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -240,6 +241,8 @@ std::string HelpMessage()
     strUsage += "  -alertnotify=<cmd>     " + _("Execute command when a relevant alert is received (%s in cmd is replaced by message)") + "\n";
     strUsage += "  -upgradewallet         " + _("Upgrade wallet to latest format") + "\n";
     strUsage += "  -keypool=<n>           " + _("Set key pool size to <n> (default: 100)") + "\n";
+    strUsage += "  -generateseed          " + _("Generate a new wallet seed phrase") + "\n";
+    strUsage += "  -importseed=<seed>     " + _("Import an existing seed phrase") + "\n";
     strUsage += "  -rescan                " + _("Rescan the block chain for missing wallet transactions") + "\n";
     strUsage += "  -salvagewallet         " + _("Attempt to recover private keys from a corrupt wallet.dat") + "\n";
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 500, 0 = all)") + "\n";
@@ -725,7 +728,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         bool fNewSeed = false;
         if (fFirstRun) {
             if (!walletInit.Open(fNewSeed)) {
-                strErrors << _("Failed to get a seed!") << "\n";
+                strErrors << _("Failed to get a seed! Check debug.log") << "\n";
                 return InitError(strErrors.str());
             }
             fFirstRun = !fNewSeed;

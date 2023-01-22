@@ -530,8 +530,8 @@ bool CKey::ReserealizeSignature(std::vector<unsigned char>& vchSig) {
 
 void CKey::MakeNewKey(bool fCompressedIn) {
     do {
-        RAND_bytes(vch, sizeof(vch));
-    } while (!Check(vch));
+        RAND_bytes(keydata.data(), keydata.size());
+    } while (!Check(keydata.data()));
     fValid = true;
     fCompressed = fCompressedIn;
 }
@@ -540,7 +540,7 @@ bool CKey::SetPrivKey(const CPrivKey &privkey, bool fCompressedIn) {
     CECKey key;
     if (!key.SetPrivKey(privkey))
         return false;
-    key.GetSecretBytes(vch);
+    key.GetSecretBytes(keydata.data());
     fCompressed = fCompressedIn;
     fValid = true;
     return true;
@@ -549,7 +549,7 @@ bool CKey::SetPrivKey(const CPrivKey &privkey, bool fCompressedIn) {
 CPrivKey CKey::GetPrivKey() const {
     assert(fValid);
     CECKey key;
-    key.SetSecretBytes(vch);
+    key.SetSecretBytes(keydata.data());
     CPrivKey privkey;
     key.GetPrivKey(privkey, fCompressed);
     return privkey;
@@ -558,7 +558,7 @@ CPrivKey CKey::GetPrivKey() const {
 CPubKey CKey::GetPubKey() const {
     assert(fValid);
     CECKey key;
-    key.SetSecretBytes(vch);
+    key.SetSecretBytes(keydata.data());
     CPubKey pubkey;
     key.GetPubKey(pubkey, fCompressed);
     return pubkey;
@@ -568,7 +568,7 @@ bool CKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig) const {
     if (!fValid)
         return false;
     CECKey key;
-    key.SetSecretBytes(vch);
+    key.SetSecretBytes(keydata.data());
     return key.Sign(hash, vchSig);
 }
 
@@ -576,7 +576,7 @@ bool CKey::SignCompact(const uint256 &hash, std::vector<unsigned char>& vchSig) 
     if (!fValid)
         return false;
     CECKey key;
-    key.SetSecretBytes(vch);
+    key.SetSecretBytes(keydata.data());
     vchSig.resize(65);
     int rec = -1;
     if (!key.SignCompact(hash, &vchSig[1], rec))
@@ -591,7 +591,7 @@ bool CKey::Load(CPrivKey &privkey, CPubKey &vchPubKey, bool fSkipCheck=false) {
     if (!key.SetPrivKey(privkey, fSkipCheck))
         return false;
 
-    key.GetSecretBytes(vch);
+    key.GetSecretBytes(keydata.data());
     fCompressed = vchPubKey.IsCompressed();
     fValid = true;
 
@@ -606,7 +606,7 @@ bool CKey::Load(CPrivKey &privkey, CPubKey &vchPubKey, bool fSkipCheck=false) {
 
 void CKey::Clear()
 {
-    memset(vch, 0, size());
+    memset(keydata.data(), 0, size());
     fCompressed = true;
     fValid = false;
 }
@@ -683,19 +683,17 @@ void static BIP32Hash(const unsigned char chainCode[32], unsigned int nChild, un
 bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild, const unsigned char cc[32]) const {
     assert(IsValid());
     assert(IsCompressed());
-    unsigned char out[64];
-    LockObject(out);
+    std::vector<unsigned char, secure_allocator<unsigned char>> vout(64);
     if ((nChild >> 31) == 0) {
         CPubKey pubkey = GetPubKey();
         assert(pubkey.begin() + 33 == pubkey.end());
-        BIP32Hash(cc, nChild, *pubkey.begin(), pubkey.begin()+1, out);
+        BIP32Hash(cc, nChild, *pubkey.begin(), pubkey.begin()+1, vout.data());
     } else {
         assert(begin() + 32 == end());
-        BIP32Hash(cc, nChild, 0, begin(), out);
+        BIP32Hash(cc, nChild, 0, begin(), vout.data());
     }
-    memcpy(ccChild, out+32, 32);
-    bool ret = CECKey::TweakSecret((unsigned char*)keyChild.begin(), begin(), out);
-    UnlockObject(out);
+    memcpy(ccChild, vout.data()+32, 32);
+    bool ret = CECKey::TweakSecret((unsigned char*)keyChild.begin(), begin(), vout.data());
     keyChild.fCompressed = true;
     keyChild.fValid = ret;
     return ret;
@@ -728,12 +726,10 @@ void CExtKey::SetMaster(const unsigned char *seed, unsigned int nSeedLen) {
     HMAC_SHA512_CTX ctx;
     HMAC_SHA512_Init(&ctx, hashkey, sizeof(hashkey));
     HMAC_SHA512_Update(&ctx, seed, nSeedLen);
-    unsigned char out[64];
-    LockObject(out);
-    HMAC_SHA512_Final(out, &ctx);
-    key.Set(&out[0], &out[32], true);
-    memcpy(vchChainCode, &out[32], 32);
-    UnlockObject(out);
+    std::vector<unsigned char, secure_allocator<unsigned char>> vout(64);
+    HMAC_SHA512_Final(vout.data(), &ctx);
+    key.Set(vout.data(), vout.data()+32, true);
+    memcpy(vchChainCode, vout.data()+32, 32);
     nDepth = 0;
     nChild = 0;
     memset(vchFingerprint, 0, sizeof(vchFingerprint));

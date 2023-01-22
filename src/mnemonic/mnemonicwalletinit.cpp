@@ -13,6 +13,7 @@
 #include "mnemonic.h"
 #include "generateseed.h"
 #include "walletinitflags.h"
+#include <istream>
 
 //const WalletInitInterface& g_wallet_init_interface = MnemonicWalletInit();
 
@@ -39,15 +40,16 @@ bool MnemonicWalletInit::Open(bool& fNewSeed)
     if (GetBoolArg("-generateseed", false))
         initOption = MnemonicWalletInitFlags::NEW_MNEMONIC;
     std::string strSeedPhraseArg = GetArg("-importseed", "");
-    if (!strSeedPhraseArg.empty())
+    if (!strSeedPhraseArg.empty()) {
         initOption = MnemonicWalletInitFlags::IMPORT_MNEMONIC;
+    }
 
     /**If no startup args, then launch prompt asking to import a seed or generate new **/
     if (initOption == MnemonicWalletInitFlags::INVALID_MNEMONIC) {
         // Prompt the user to either enter a seed phrase, or generate a new one
         unsigned int ret = 0;
         if (!InitNewWalletPrompt(ret))
-            return error("%s: failed to get wallet mnemonic languag");
+            return error("%s: failed to get wallet mnemonic language", __func__);
         initOption = static_cast<MnemonicWalletInitFlags>(ret);
     }
 
@@ -70,12 +72,24 @@ bool MnemonicWalletInit::Open(bool& fNewSeed)
         if (strSeedPhraseArg.empty() && !GetWalletMnemonic(strSeedPhraseArg))
             return false;
 
+        // Do not allow a new seed based on an empty seed phrase
+        if (strSeedPhraseArg.empty()) {
+            LogPrintf("Cannot import an empty seed phrase!\n");
+            return false;
+        }
+
+        //validate the mnemonic
+        std::vector<std::string> words;
+        std::istringstream iss(strSeedPhraseArg);
+        std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(words));
+        if (!validate_mnemonic(words)) {
+            return error("%s: seed phrase is not valid!", __func__);
+        }
+
         // Convert the BIP39 mnemonic phrase into the final 512bit wallet seed
         auto hashRet = decode_mnemonic(strSeedPhraseArg);
         memcpy(m_seed.begin(), hashRet.begin(), hashRet.size());
-        LogPrintf("%s: Staging for loading seed %s\n", __func__, m_seed.GetHex());
     }
-    LogPrintf("%s: seed %s\n", __func__, m_seed.GetHex());
 
     if (fNewSeed) {
         // Create new keyUser and set as default key

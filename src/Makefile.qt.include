@@ -165,6 +165,7 @@ RES_ICONS = \
   qt/res/icons/quit.png \
   qt/res/icons/receive.png \
   qt/res/icons/remove.png \
+  qt/res/icons/salus.ico \
   qt/res/icons/send.png \
   qt/res/icons/staking_off.png \
   qt/res/icons/staking_on.png \
